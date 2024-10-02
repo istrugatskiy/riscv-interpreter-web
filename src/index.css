@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+#editor {
+    @apply row-span-2 rounded-lg;
+}
+#editor {
+    color: rgb(46, 50, 53)
+}
+body {
+    background-color: rgb(25, 27, 29);
+}
+.bg-material {
+    background-color: rgb(46, 50, 53);
+}
+.cm-editor, #register-tab {
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    height: calc(66vh - 70px);
+}
+.cm-scroll {
+    overflow: auto;
+}
