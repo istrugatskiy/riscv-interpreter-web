@@ -5,7 +5,7 @@ import { materialDark } from '@uiw/codemirror-theme-material';
 
 import MyModule from './output';
 import { riscv } from './syntax';
-const Module = MyModule();
+
 /**
  * Sleeps for a given amount of time the current "thread".
  * @param ms - The amount of time to sleep in milliseconds.
@@ -23,7 +23,7 @@ const registers = [
     'x5 (t0)',
     'x6 (t1)',
     'x7 (t2)',
-    'x8 (s0/fp)',
+    'x8 (fp)',
     'x9 (s1)',
     'x10 (a0)',
     'x11 (a1)',
@@ -48,7 +48,13 @@ const registers = [
     'x30 (t5)',
     'x31 (t6)',
 ];
-const reg_vals: bigint[] = new Array(32).fill(0n);
+
+const bigint_to_string = (num: bigint, radix: 'hex' | 'binary' | 'decimal') => {
+    const val = BigInt.asUintN(64, num);
+    if (radix == 'hex') return `0x${val.toString(16)}`;
+    if (radix == 'binary') return `0b${val.toString(2)}`;
+    return BigInt.asIntN(64, val).toString();
+};
 
 const append_register_rows = (
     register_mnemonics: string[],
@@ -64,23 +70,23 @@ const append_register_rows = (
         }
         const input_element = document.createElement('input');
         input_element.type = 'text';
-        input_element.value = String(init_value);
+        input_element.value = '0x' + init_value.toString(16);
         input_element.className =
-            'bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 m-1 p-0.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
+            'text-center inline-block max-w-40 bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 m-1 p-0.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
 
         const label = document.createElement('label');
-        label.textContent = `${mnemonic} = `;
+        label.textContent = `${mnemonic} =`;
 
         const row = document.createElement('div');
         row.appendChild(label);
         row.appendChild(input_element);
-        row.className = 'flex justify-between';
+        row.className = 'flex justify-end max-w-80';
         return row;
     };
 
     const create_column = (startIndex: number) => {
         const column = document.createElement('div');
-        column.className = 'w-1/2 max-w-80'; // Make each column take half the width
+        column.className = 'flex flex-col'; // Make each column take half the width
 
         const fragment = document.createDocumentFragment();
         for (let i = startIndex; i < startIndex + 16; i++) {
@@ -97,7 +103,7 @@ const append_register_rows = (
 
     // Create a container for the two columns
     const container = document.createElement('div');
-    container.className = 'flex';
+    container.className = 'flex justify-evenly flex-wrap';
 
     // Create the left column
     const leftColumn = create_column(0);
@@ -111,75 +117,224 @@ const append_register_rows = (
     table_body.appendChild(container);
 };
 
-const sync_registers = () => {};
-
 // This is a really sus interface between the two things.
+const log_line = (text: string) => {
+    const log_view = document.getElementById('logs');
+    if (!log_view) throw new Error('No log view');
+    const height =
+        log_view.parentElement?.scrollTop ==
+        log_view.parentElement!.scrollHeight -
+            log_view.parentElement!.offsetHeight;
+    const message = document.createElement('p');
+    message.textContent = text;
+    log_view.append(message);
+    if (height) {
+        log_view.parentElement!.scrollTop =
+            log_view.parentElement!.scrollHeight;
+    }
+};
+let current_radix: 'hex' | 'binary' | 'decimal' = 'hex';
 // @ts-ignore
 window.interpreter = {
-    set_line: (input: string) => {
-        const log_view = document.getElementById('logs');
-        if (!log_view) throw new Error('No log view');
-        const message = document.createElement('p');
-        message.textContent = input;
-        log_view.append(message);
-    },
     set_register: (reg_id: number, value: bigint) => {
-        const regs = document.getElementById('registers')?.children;
+        if (reg_id == 0) return;
+        const regs = document.querySelectorAll('#registers input');
         if (!regs) throw new Error('No registers element!!');
-        const input = regs
-            .item(reg_id)
-            ?.querySelector('input') as HTMLInputElement;
-        if (input) input.value = value.toString();
+        const input = regs.item(reg_id - 1) as HTMLInputElement;
+        if (input) input.value = bigint_to_string(value, current_radix);
     },
 };
 
-// @ts-ignore
+let prepared_code;
+const Module = MyModule({ print: log_line });
+
 Module.then((mod) => {
-    append_register_rows(registers, document.getElementById('registers'));
-    const editor = new EditorView({
-        doc: `# Type your code here...
+    let code_prepared = false;
+    let stop_requested = false;
+
+    const previous_value =
+        localStorage.getItem('code') ??
+        `# Type your code here...
 addi x1, x0, 2047
 addi x1, x1, 1363
-# x1 = 3410 :)`,
-        extensions: [basicSetup, materialDark, StreamLanguage.define(riscv)],
+# x1 = 3410 :)`;
+    append_register_rows(registers, document.getElementById('registers'));
+    const editor = new EditorView({
+        doc: previous_value,
+        extensions: [
+            basicSetup,
+            materialDark,
+            StreamLanguage.define(riscv),
+            EditorView.updateListener.of((v) => {
+                localStorage.setItem('code', v.state.doc.toString());
+            }),
+        ],
         parent: document.getElementById('editor')!,
     });
+
+    // Functions to interact with the WASM module
     const set_register = mod.cwrap('set_register', 'void', [
-        'number',
+        'bigint',
         'bigint',
     ]);
+    let pc = 0;
+    let prev_pc = -1;
     const set_memory = mod.cwrap('set_memory', 'void', ['number', 'bigint']);
     const prepare_code = mod.cwrap('prepare_code', 'number', []);
     const run_code = mod.cwrap('run_code', 'number', []);
     const free_code = mod.cwrap('free_code', 'void', []);
+    const safe_prepare = () => {
+        if (!code_prepared) {
+            mod.FS.writeFile('input.asm', editor.state.doc.toString());
+            prepare_code();
+            code_prepared = true;
+            pc = 0;
+            prev_pc = -1;
+            document
+                .querySelectorAll('#registers input')
+                .forEach((input, idx) => {
+                    const inp = input as HTMLInputElement;
+                    const val = inp.value;
+                    inp.disabled = true;
+                    set_register(BigInt(idx + 1), BigInt(val));
+                });
+        }
+    };
+    const safe_step = () => {
+        safe_prepare();
+        if (pc == prev_pc || pc == -2147483648 || stop_requested) return false;
+        prev_pc = pc;
+        pc = run_code();
+        return true;
+    };
+    const reset_state = () => {
+        (document.getElementById('reset') as HTMLButtonElement).disabled = true;
+        (document.getElementById('step') as HTMLButtonElement).disabled = false;
+        (document.getElementById('run') as HTMLButtonElement).disabled = false;
+        (document.getElementById('stop') as HTMLButtonElement).disabled = true;
+        document.querySelectorAll('#registers input').forEach((input) => {
+            const inp = input as HTMLInputElement;
+            inp.value = bigint_to_string(0n, current_radix);
+            inp.disabled = false;
+        });
+    };
 
+    const enable_buttons = () => {
+        (document.getElementById('reset') as HTMLButtonElement).disabled =
+            false;
+    };
+
+    const disable_all_buttons = () => {
+        (document.getElementById('run') as HTMLButtonElement).disabled = true;
+        (document.getElementById('reset') as HTMLButtonElement).disabled = true;
+        (document.getElementById('step') as HTMLButtonElement).disabled = true;
+        (document.getElementById('stop') as HTMLButtonElement).disabled = true;
+        document.querySelectorAll('#registers input').forEach((input) => {
+            const inp = input as HTMLInputElement;
+            inp.disabled = true;
+        });
+    };
+
+    const handle_reset = () => {
+        // Reset compiler state
+        if (code_prepared) {
+            free_code();
+            code_prepared = false;
+        }
+        reset_state();
+        document.getElementById('logs')?.replaceChildren(); // Clear logs
+    };
+
+    const handle_stop = () => {
+        stop_requested = true;
+    };
+
+    const handle_run = async () => {
+        // Disable buttons during execution
+        disable_all_buttons();
+        stop_requested = false;
+
+        (document.getElementById('stop') as HTMLButtonElement).disabled = false;
+
+        // Run the code in a loop, but allow stopping
+        let can_step_again = true;
+        while (can_step_again) {
+            await sleep(1000 / 64); // Run at approx. 64 Hz
+            can_step_again = safe_step();
+        }
+        if (stop_requested) {
+            (document.getElementById('reset') as HTMLButtonElement).disabled =
+                false;
+            (document.getElementById('step') as HTMLButtonElement).disabled =
+                false;
+            (document.getElementById('run') as HTMLButtonElement).disabled =
+                false;
+            (document.getElementById('stop') as HTMLButtonElement).disabled =
+                true;
+            stop_requested = false;
+            return;
+        }
+        // Clean up after execution
+        free_code();
+        code_prepared = false;
+
+        // Re-enable appropriate buttons
+        enable_buttons();
+        (document.getElementById('stop') as HTMLButtonElement).disabled = true;
+    };
+
+    const handle_step = () => {
+        if (!safe_step()) {
+            disable_all_buttons();
+        }
+        (document.getElementById('reset') as HTMLButtonElement).disabled =
+            false;
+    };
+
+    // Event listeners for buttons
     window.addEventListener('click', async (event) => {
         const target = event.target;
         if (!target || !(target instanceof HTMLElement)) {
             console.error("This shouldn't happen...");
-            console.error(target);
             return;
         }
-        if (target.matches('#run')) {
-            if (!(target instanceof HTMLButtonElement)) return;
 
-            mod.FS.writeFile('input.asm', editor.state.doc.toString());
-            prepare_code();
-            let prev_pc = -1;
-            let pc = 0;
-            target.disabled = true;
-            while (pc != prev_pc && pc != -2147483648) {
-                prev_pc = pc;
-                // Run at approx. 32 hz.
-                await sleep(1000 / 32);
-                pc = run_code();
-                console.log(pc);
-            }
-            free_code();
-            target.disabled = false;
+        if (target.matches('#run')) {
+            await handle_run();
         } else if (target.matches('#reset')) {
+            handle_reset();
         } else if (target.matches('#stop')) {
+            handle_stop();
         } else if (target.matches('#step')) {
+            handle_step();
+        }
+    });
+
+    window.addEventListener('change', async (event) => {
+        const target = event.target;
+        if (!target || !(target instanceof HTMLSelectElement)) {
+            return;
+        }
+        if (target.matches('#view_as')) {
+            const new_radix = target.value as 'hex' | 'binary' | 'decimal';
+            current_radix = new_radix;
+            for (const register of document.querySelectorAll(
+                '#registers input'
+            )) {
+                try {
+                    if (register instanceof HTMLInputElement) {
+                        register.value = bigint_to_string(
+                            BigInt(register.value),
+                            new_radix
+                        );
+                    }
+                } catch (exception) {
+                    console.log('invalid literal');
+                    if (register instanceof HTMLInputElement) {
+                        register.value = bigint_to_string(0n, new_radix);
+                    }
+                }
+            }
         }
     });
 });

@@ -399,7 +399,7 @@ int step(char *instruction, int line) {
           instruction++;
         }
         if (instruction[0] != '#') {
-          printf("Malformed instruction.\nPlease reset.\n");
+          printf("Malformed instruction: %s.\nPlease reset.\n", inst_copy);
           return INT_MIN;
         }
       }
@@ -417,25 +417,29 @@ int step(char *instruction, int line) {
       char *second = tokens;
       if (second == NULL || second[0] == '+' || second[0] == '-') {
         if (!is_one) {
-          printf("Malformed instruction.\nPlease reset.\n");
+          printf("Malformed instruction: %s.\nPlease reset.\n", inst_copy);
           return INT_MIN;
         }
         uint64_t imm = imm_label(first);
         imm = read_offset(tokens, first, imm);
         if (imm % 4 || (int64_t)imm < 0) {
-          printf("Must branch to instruction that exists.\nPlease reset.\n");
+          printf(
+              "Must branch to instruction that exists at: %s.\nPlease reset.\n",
+              inst_copy);
           return INT_MIN;
         }
         return r_jal(1, imm, line);
       } else {
         if (!is_two) {
-          printf("Malformed instruction.\nPlease reset.\n");
+          printf("Malformed instruction: %s.\nPlease reset.\n", inst_copy);
           return INT_MIN;
         }
         uint64_t imm = imm_label(second);
         imm = read_offset(tokens, second, imm);
         if (imm % 4 || (int64_t)imm < 0) {
-          printf("Must branch to instruction that exists.\nPlease reset.\n");
+          printf(
+              "Must branch to instruction that exists at: %s.\nPlease reset.\n",
+              inst_copy);
           return INT_MIN;
         }
         int rd = lt_get(abi_map, first);
@@ -447,7 +451,7 @@ int step(char *instruction, int line) {
       char *second = tokens;
       if (second == NULL || second[0] == '#') {
         if (!is_one_no) {
-          printf("Malformed instruction.\nPlease reset.\n");
+          printf("Malformed instruction: %s.\nPlease reset.\n", inst_copy);
           return INT_MIN;
         }
         int rs = lt_get(abi_map, first);
@@ -455,7 +459,7 @@ int step(char *instruction, int line) {
         return r_jalr(1, rs, 0, line);
       } else {
         if (!is_three) {
-          printf("Malformed instruction.\nPlease reset.\n");
+          printf("Malformed instruction: %s.\nPlease reset.\n", inst_copy);
           return INT_MIN;
         }
         int rd = lt_get(abi_map, first);
@@ -466,14 +470,16 @@ int step(char *instruction, int line) {
         char *imm_s = tokens;
         uint64_t imm = imm_label(imm_s);
         if (imm % 4 || (int64_t)imm < 0) {
-          printf("Must branch to instruction that exists.\nPlease reset.\n");
+          printf(
+              "Must branch to instruction that exists at: %s.\nPlease reset.\n",
+              inst_copy);
           return INT_MIN;
         }
         return r_jalr(rd, rs, imm, line);
       }
     } else if (strcmp(op, "jr") == 0) {
       if (!is_one_no) {
-        printf("Malformed instruction.\nPlease reset.\n");
+        printf("Malformed instruction: %s.\nPlease reset.\n", inst_copy);
         return INT_MIN;
       }
       int rs = lt_get(abi_map, first);
@@ -484,7 +490,7 @@ int step(char *instruction, int line) {
       imm = read_offset(tokens, first, imm);
       if (strcmp(op, "j") == 0) {
         if (!is_one) {
-          printf("Malformed instruction.\nPlease reset.\n");
+          printf("Malformed instruction %s.\nPlease reset.\n", inst_copy);
           return INT_MIN;
         }
         if (imm % 4 || (int64_t)imm < 0) {
@@ -495,15 +501,14 @@ int step(char *instruction, int line) {
       }
     }
   } else {
-    printf("Illegal instruction.\nPlease reset.\n");
-    printf("%s", inst_copy);
+    printf("Illegal instruction: %s.\nPlease reset.\n", inst_copy);
     return INT_MIN;
   }
   return line + 4;
 }
 
 // Two functions for setting up r5 code environment:
-EMSCRIPTEN_KEEPALIVE void set_register(uint8_t register_id, uint64_t value) {
+EMSCRIPTEN_KEEPALIVE void set_register(int64_t register_id, uint64_t value) {
   registers[register_id] = value;
 }
 
@@ -516,6 +521,7 @@ int main(int argc, char *argv[]) { return 0; }
 
 EMSCRIPTEN_KEEPALIVE
 int prepare_code() {
+  printf("\\prepare_code\n");
   memory = ht_init();
   labels = lt_init();
   abi_map = lt_init();
@@ -570,12 +576,12 @@ int prepare_code() {
 }
 
 int run_code() {
-  if (sim_PC >= user_instruction_count * 4 || sim_PC < 0)
+  if (!(sim_PC < user_instruction_count * 4 && sim_PC >= 0))
     return sim_PC;
   int index = sim_PC / 4;
   char buffer[256];
   strcpy(buffer, user_instructions[index].instruction);
-  printf("[line %d] %s", user_instructions[index].source_line,
+  printf("[line %d] %s\n", user_instructions[index].source_line,
          user_instructions[index].instruction);
   for (int i = 0; buffer[i]; ++i) {
     buffer[i] = tolower(buffer[i]);
@@ -592,12 +598,31 @@ int run_code() {
 }
 
 void free_code() {
-  for (int i = 0; i < total_lines; ++i) {
-    free(code_lines[i]);
+  for (int i = 0; i < 32; ++i) {
+    registers[i] = 0;
   }
-  free(code_lines);
+
   ht_free(memory);
-  lt_free(abi_map);
+  memory = ht_init();
+
   lt_free(labels);
+  labels = lt_init();
+
+  if (user_instructions != NULL) {
+    for (int i = 0; i < user_instruction_count; ++i) {
+      free(user_instructions[i].instruction);
+    }
+    free(user_instructions);
+    user_instructions = NULL;
+  }
+  user_instruction_count = 0;
+
+  if (code_lines != NULL) {
+    free(code_lines);
+    code_lines = NULL;
+  }
+
+  total_lines = 0;
+
   sim_PC = 0;
 }

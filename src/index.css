@@ -10,6 +10,9 @@
 }
 body {
     background-color: rgb(25, 27, 29);
+    min-width: 800px;
+    min-height: 800px;
+    overflow: auto;
 }
 .bg-material {
     background-color: rgb(46, 50, 53);
@@ -17,8 +20,25 @@ body {
 .cm-editor, #register-tab {
     padding: 1.5rem;
     border-radius: 0.5rem;
-    height: calc(66vh - 70px);
+    height: max(calc(66vh - 70px), 500px);
 }
 .cm-scroll {
     overflow: auto;
+}
+#registers {
+    width: 100%;
+}
+#logs {
+    max-height: max(20vh, 125px);
+}
+button {
+    box-shadow: 0 0 12px #000;
+}
+button:disabled {
+    box-shadow: none;
+    background-color: rgb(46, 50, 53);
+}
+button:hover:disabled {
+    box-shadow: none;
+    background-color: rgb(46, 50, 53);
 }

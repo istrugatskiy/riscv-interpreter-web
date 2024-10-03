@@ -14,8 +14,17 @@
                 <button
                     class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-4 rounded"
                     id="reset"
+                    disabled
                 >
                     reset
+                </button>
+
+                <button
+                    class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-4 rounded"
+                    id="stop"
+                    disabled
+                >
+                    stop
                 </button>
                 <button
                     class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-4 rounded"
@@ -36,14 +45,16 @@
         <main class="flex-1 grid grid-cols-2 gap-4 p-4">
             <div class="grid grid-rows-3 gap-4">
                 <div id="editor"></div>
-                <div class="row-span-1 bg-material p-6 rounded-lg">
+                <div
+                    class="row-span-1 bg-material p-6 rounded-lg overflow-auto"
+                >
                     <h1 class="text-xl">Log Output</h1>
-                    <div id="logs"></div>
+                    <div id="logs" class="max-h-full font-mono"></div>
                 </div>
             </div>
             <div class="grid grid-rows-3 gap-4">
                 <div
-                    class="row-span-2 bg-material p-6 rounded-lg overflow-auto flex flex-col items-center"
+                    class="row-span-2 bg-material p-6 rounded-lg overflow-auto flex flex-col items-center font-mono"
                     id="register-tab"
                 >
                     <div>
@@ -60,7 +71,7 @@
                     <div id="registers"></div>
                 </div>
                 <div class="row-span-1 bg-gray-600 p-6 rounded-lg">
-                    Right 1/3
+                    Memory View coming soon sorry :(
                 </div>
             </div>
         </main>

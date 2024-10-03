@@ -46,7 +46,7 @@ const relocationFunctionPatterns = new RegExp(
     '%(?:' + relocationFunctions.join('|') + ')\\([^)]+\\)'
 );
 
-const instructions = (xs) =>
+const instructions = (xs: string[]) =>
     new RegExp(
         '\\b(?:' +
             xs.map((x) => x.replace(/\./g, (_) => '\\.')).join('|') +
