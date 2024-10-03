@@ -1,4 +1,7 @@
+// Stolen and adapted from https://github.com/codewars/codemirror-riscv
+// I patched it up for codemirror 6 and fixed a few minor bugs, made it look slightly better
 import { simpleMode } from '@codemirror/legacy-modes/mode/simple-mode.js';
+
 // prettier-ignore
 const directives = [
   // Architecture independent directives.

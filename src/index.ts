@@ -101,15 +101,12 @@ const append_register_rows = (
         return column;
     };
 
-    // Create a container for the two columns
     const container = document.createElement('div');
     container.className = 'flex justify-evenly flex-wrap';
 
-    // Create the left column
     const leftColumn = create_column(0);
     container.appendChild(leftColumn);
 
-    // Create the right column
     const rightColumn = create_column(16);
     container.appendChild(rightColumn);
 
@@ -117,10 +114,10 @@ const append_register_rows = (
     table_body.appendChild(container);
 };
 
-// This is a really sus interface between the two things.
 const log_line = (text: string) => {
     const log_view = document.getElementById('logs');
     if (!log_view) throw new Error('No log view');
+    // This weird height logic allows the scroll to be fixed.
     const height =
         log_view.parentElement?.scrollTop ==
         log_view.parentElement!.scrollHeight -
@@ -134,6 +131,9 @@ const log_line = (text: string) => {
     }
 };
 let current_radix: 'hex' | 'binary' | 'decimal' = 'hex';
+
+// window.interpreter is the interface used for c wasm to js register communication.
+// There probably is a better way to do this?
 // @ts-ignore
 window.interpreter = {
     set_register: (reg_id: number, value: bigint) => {
@@ -145,13 +145,13 @@ window.interpreter = {
     },
 };
 
-let prepared_code;
 const Module = MyModule({ print: log_line });
 
 Module.then((mod) => {
     let code_prepared = false;
     let stop_requested = false;
 
+    // This allows code to be preserved across reloads.
     const previous_value =
         localStorage.getItem('code') ??
         `# Type your code here...
@@ -171,18 +171,29 @@ addi x1, x1, 1363
         ],
         parent: document.getElementById('editor')!,
     });
+    // This pc prev_pc approach works fine, just users need to press step an extra two times.
+    // I will fix it once I get the chance.
+    let pc = 0;
+    let prev_pc = -1;
 
-    // Functions to interact with the WASM module
     const set_register = mod.cwrap('set_register', 'void', [
         'bigint',
         'bigint',
     ]);
-    let pc = 0;
-    let prev_pc = -1;
+
+    // This function is for memory activities.
+    // It needs to be fixed up soon.
     const set_memory = mod.cwrap('set_memory', 'void', ['number', 'bigint']);
     const prepare_code = mod.cwrap('prepare_code', 'number', []);
     const run_code = mod.cwrap('run_code', 'number', []);
     const free_code = mod.cwrap('free_code', 'void', []);
+    const get_button = (id: string) =>
+        document.getElementById(id) as HTMLButtonElement;
+    const b_reset = get_button('reset');
+    const b_step = get_button('step');
+    const b_run = get_button('run');
+    const b_stop = get_button('stop');
+
     const safe_prepare = () => {
         if (!code_prepared) {
             mod.FS.writeFile('input.asm', editor.state.doc.toString());
@@ -200,6 +211,7 @@ addi x1, x1, 1363
                 });
         }
     };
+
     const safe_step = () => {
         safe_prepare();
         if (pc == prev_pc || pc == -2147483648 || stop_requested) return false;
@@ -207,46 +219,16 @@ addi x1, x1, 1363
         pc = run_code();
         return true;
     };
-    const reset_state = () => {
-        (document.getElementById('reset') as HTMLButtonElement).disabled = true;
-        (document.getElementById('step') as HTMLButtonElement).disabled = false;
-        (document.getElementById('run') as HTMLButtonElement).disabled = false;
-        (document.getElementById('stop') as HTMLButtonElement).disabled = true;
-        document.querySelectorAll('#registers input').forEach((input) => {
-            const inp = input as HTMLInputElement;
-            inp.value = bigint_to_string(0n, current_radix);
-            inp.disabled = false;
-        });
-    };
-
-    const enable_buttons = () => {
-        (document.getElementById('reset') as HTMLButtonElement).disabled =
-            false;
-    };
 
     const disable_all_buttons = () => {
-        (document.getElementById('run') as HTMLButtonElement).disabled = true;
-        (document.getElementById('reset') as HTMLButtonElement).disabled = true;
-        (document.getElementById('step') as HTMLButtonElement).disabled = true;
-        (document.getElementById('stop') as HTMLButtonElement).disabled = true;
+        b_run.disabled = true;
+        b_reset.disabled = true;
+        b_step.disabled = true;
+        b_stop.disabled = true;
         document.querySelectorAll('#registers input').forEach((input) => {
             const inp = input as HTMLInputElement;
             inp.disabled = true;
         });
-    };
-
-    const handle_reset = () => {
-        // Reset compiler state
-        if (code_prepared) {
-            free_code();
-            code_prepared = false;
-        }
-        reset_state();
-        document.getElementById('logs')?.replaceChildren(); // Clear logs
-    };
-
-    const handle_stop = () => {
-        stop_requested = true;
     };
 
     const handle_run = async () => {
@@ -254,44 +236,28 @@ addi x1, x1, 1363
         disable_all_buttons();
         stop_requested = false;
 
-        (document.getElementById('stop') as HTMLButtonElement).disabled = false;
+        b_stop.disabled = false;
 
-        // Run the code in a loop, but allow stopping
         let can_step_again = true;
         while (can_step_again) {
             await sleep(1000 / 64); // Run at approx. 64 Hz
             can_step_again = safe_step();
         }
         if (stop_requested) {
-            (document.getElementById('reset') as HTMLButtonElement).disabled =
-                false;
-            (document.getElementById('step') as HTMLButtonElement).disabled =
-                false;
-            (document.getElementById('run') as HTMLButtonElement).disabled =
-                false;
-            (document.getElementById('stop') as HTMLButtonElement).disabled =
-                true;
+            b_reset.disabled = false;
+            b_step.disabled = false;
+            b_run.disabled = false;
+            b_stop.disabled = true;
             stop_requested = false;
             return;
         }
-        // Clean up after execution
         free_code();
         code_prepared = false;
 
-        // Re-enable appropriate buttons
-        enable_buttons();
-        (document.getElementById('stop') as HTMLButtonElement).disabled = true;
+        b_reset.disabled = false;
+        b_stop.disabled = true;
     };
 
-    const handle_step = () => {
-        if (!safe_step()) {
-            disable_all_buttons();
-        }
-        (document.getElementById('reset') as HTMLButtonElement).disabled =
-            false;
-    };
-
-    // Event listeners for buttons
     window.addEventListener('click', async (event) => {
         const target = event.target;
         if (!target || !(target instanceof HTMLElement)) {
@@ -302,11 +268,29 @@ addi x1, x1, 1363
         if (target.matches('#run')) {
             await handle_run();
         } else if (target.matches('#reset')) {
-            handle_reset();
+            // Reset compiler state
+            if (code_prepared) {
+                free_code();
+                code_prepared = false;
+            }
+            b_reset.disabled = true;
+            b_step.disabled = false;
+            b_run.disabled = false;
+            b_stop.disabled = true;
+            document.querySelectorAll('#registers input').forEach((input) => {
+                const inp = input as HTMLInputElement;
+                inp.value = bigint_to_string(0n, current_radix);
+                inp.disabled = false;
+            });
+
+            document.getElementById('logs')?.replaceChildren(); // Clear logs
         } else if (target.matches('#stop')) {
-            handle_stop();
+            stop_requested = true;
         } else if (target.matches('#step')) {
-            handle_step();
+            if (!safe_step()) {
+                disable_all_buttons();
+            }
+            b_reset.disabled = false;
         }
     });
 
@@ -329,7 +313,7 @@ addi x1, x1, 1363
                         );
                     }
                 } catch (exception) {
-                    console.log('invalid literal');
+                    console.error('invalid literal');
                     if (register instanceof HTMLInputElement) {
                         register.value = bigint_to_string(0n, new_radix);
                     }
