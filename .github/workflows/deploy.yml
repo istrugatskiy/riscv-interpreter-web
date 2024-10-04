@@ -1,0 +1,70 @@
+name: Build and Deploy RISC-V Interpreter Web
+# Thanks gpt-4o, hopefully you didn't mess this up.
+on:
+    push:
+        branches:
+            - main # Adjust this if your default branch is different
+
+jobs:
+    # Build job
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: '18'
+                  cache: 'yarn'
+
+            - name: Install Yarn Berry (v2+)
+              run: yarn set version berry
+
+            - name: Install dependencies
+              run: yarn install
+
+            - name: Install TypeScript globally (for emsdk workaround)
+              run: npm install -g typescript
+
+            - name: Install emsdk
+              run: |
+                  git clone https://github.com/emscripten-core/emsdk.git
+                  cd emsdk
+                  ./emsdk install latest
+                  ./emsdk activate latest
+                  source ./emsdk_env.sh
+
+            - name: Run compile.sh script
+              run: ./compile.sh
+
+            - name: Build with Parcel
+              run: yarn parcel build src/index.html
+
+            - name: Move a.out.wasm to dist/src/
+              run: |
+                  mkdir -p dist/src
+                  mv a.out.wasm dist/src/
+
+            - name: Upload artifact for GitHub Pages
+              uses: actions/upload-pages-artifact@v1
+              with:
+                  path: ./dist
+
+    # Deploy job
+    deploy:
+        needs: build
+        permissions:
+            pages: write # to deploy to Pages
+            id-token: write # to verify the deployment originates from an appropriate source
+
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+
+        runs-on: ubuntu-latest
+        steps:
+            - name: Deploy to GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@v4
