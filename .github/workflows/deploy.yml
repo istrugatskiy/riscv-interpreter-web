@@ -25,7 +25,7 @@ jobs:
                   yarn config set enableGlobalCache false
 
             - name: Install dependencies
-              run: yarn install --immutable --immutable-cache
+              run: yarn install
 
             - name: Install TypeScript globally (for emsdk workaround)
               run: npm install -g typescript
