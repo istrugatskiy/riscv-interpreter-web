@@ -53,7 +53,7 @@ jobs:
             - name: Move a.out.wasm to dist/src/
               run: |
                   mkdir -p dist/src
-                  mv a.out.wasm dist/src/
+                  mv dist/a.out.wasm dist/src/
 
             - name: Upload artifact for GitHub Pages
               uses: actions/upload-pages-artifact@v1
