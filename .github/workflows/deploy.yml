@@ -48,7 +48,7 @@ jobs:
                   mv output.d.ts ../src/output.d.ts
 
             - name: Build with Parcel
-              run: yarn parcel build src/index.html --public-url ./riscv-interpreter-web/
+              run: yarn parcel build src/index.html --public-url ./
 
             - name: Move a.out.wasm to dist/src/
               run: |
