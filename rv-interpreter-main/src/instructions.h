@@ -84,6 +84,33 @@ void r_sraw(int rd, int rs1, int rs2) {
   registers[rd] = (int64_t)result;
 }
 
+// Credit:
+// https://stackoverflow.com/questions/25095741/how-can-i-multiply-64-bit-operands-and-get-128-bit-result-portably
+// I'm not sure if this is necessary, but better be safe than sorry.
+void mult64to128(uint64_t op1, uint64_t op2, uint64_t *lo) {
+  uint64_t u1 = (op1 & 0xffffffff);
+  uint64_t v1 = (op2 & 0xffffffff);
+  uint64_t t = (u1 * v1);
+  uint64_t w3 = (t & 0xffffffff);
+  uint64_t k = (t >> 32);
+
+  op1 >>= 32;
+  t = (op1 * v1) + k;
+  k = (t & 0xffffffff);
+  uint64_t w1 = (t >> 32);
+
+  op2 >>= 32;
+  t = (u1 * op2) + k;
+  k = (t >> 32);
+
+  *lo = (t << 32) + w3;
+}
+
+// Technically not "R Type"...
+void r_mul(int rd, int rs1, int rs2) {
+  mult64to128(registers[rs1], registers[rs2], registers + rd);
+}
+
 // I TYPE
 
 void r_addi(int rd, int rs1, uint64_t imm) {

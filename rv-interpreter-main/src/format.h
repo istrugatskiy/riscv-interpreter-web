@@ -26,9 +26,9 @@ const int UNKNOWN_TYPE = 8;
  * operation
  */
 static int get_op_type(char *op) {
-  const char *r_type_op[] = {"add",  "sub",  "and",  "or",   "xor",
-                             "slt",  "sltu", "sll",  "sra",  "srl",
-                             "addw", "sllw", "srlw", "subw", "sraw"};
+  const char *r_type_op[] = {"add",  "sub",  "and",  "or",  "xor",  "slt",
+                             "sltu", "sll",  "sra",  "srl", "addw", "sllw",
+                             "srlw", "subw", "sraw", "mul"};
   const char *i_type_op[] = {"addi",  "andi",  "ori",   "xori", "slti",
                              "addiw", "slli",  "slliw", "srli", "srliw",
                              "srai",  "sraiw", "sltiu"};
