@@ -80,6 +80,8 @@ int step(char *instruction, int line) {
       r_subw(rd, rs1, rs2);
     } else if (strcmp(op, "sraw") == 0) {
       r_sraw(rd, rs1, rs2);
+    } else if (strcmp(op, "mul") == 0) {
+      r_mul(rd, rs1, rs2);
     }
   } else if (op_type == I_TYPE) {
     if (!validate_format(instruction, 3, 0)) {
