@@ -1,0 +1,4 @@
+CompileFlags:
+    Add:
+        - '--include-directory=/home/ilya/Downloads/emsdk/upstream/emscripten/cache/sysroot/include/emscripten/'
+

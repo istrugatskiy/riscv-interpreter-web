@@ -1,29 +1,28 @@
 // I am sorry Peter for cannibalizing your beautiful C :(
-#include "hash_table.h"
-#include "label_table.h"
-#include <ctype.h>
+#include <algorithm>
+#include <cstdint>
 #include <emscripten.h>
+#include <fstream>
 #include <inttypes.h>
+#include <iostream>
 #include <limits.h>
-#include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string>
+#include <sys/types.h>
+#include <unordered_map>
+#include <vector>
 
 #include "format.h"
 #include "instructions.h"
 
-int sim_PC = 0;
-char **code_lines;
-int total_lines;
+int64_t sim_PC = 0;
+std::vector<std::string> user_lines;
 // btw I realize this is a terrible way of doing this.
 // This code is terrible...
 EMSCRIPTEN_KEEPALIVE
-int step(char *instruction, int line) {
-  const char *inst_copy = strdup(instruction);
-  while (isspace(*instruction)) {
-    instruction++;
-  }
+int step(std::string instruction, int64_t line) {
+  ltrim(instruction);
+  auto operand = instruction.find(" ");
   char *op = strsep(&instruction, " ");
   int op_type = get_op_type(op);
 
@@ -514,67 +513,33 @@ EMSCRIPTEN_KEEPALIVE void set_register(int64_t register_id, uint64_t value) {
   registers[register_id] = value;
 }
 
-EMSCRIPTEN_KEEPALIVE
-void set_memory(uint64_t location, uint64_t value) {
-  ht_insert(memory, location, value);
-}
-
 int main(int argc, char *argv[]) { return 0; }
 
 EMSCRIPTEN_KEEPALIVE
-int prepare_code() {
-  printf("\\prepare_code\n");
-  memory = ht_init();
-  labels = lt_init();
-  abi_map = lt_init();
-  char abis[32][5] = {"zero", "ra", "sp",  "gp",  "tp", "t0", "t1", "t2",
-                      "s0",   "s1", "a0",  "a1",  "a2", "a3", "a4", "a5",
-                      "a6",   "a7", "s2",  "s3",  "s4", "s5", "s6", "s7",
-                      "s8",   "s9", "s10", "s11", "t3", "t4", "t5", "t6"};
-  char defs[32][4] = {"x0",  "x1",  "x2",  "x3",  "x4",  "x5",  "x6",  "x7",
-                      "x8",  "x9",  "x10", "x11", "x12", "x13", "x14", "x15",
-                      "x16", "x17", "x18", "x19", "x20", "x21", "x22", "x23",
-                      "x24", "x25", "x26", "x27", "x28", "x29", "x30", "x31"};
+void prepare_code() {
+  std::vector<std::string> abis{
+      "zero", "ra", "sp", "gp", "tp",  "t0",  "t1", "t2", "s0", "s1", "a0",
+      "a1",   "a2", "a3", "a4", "a5",  "a6",  "a7", "s2", "s3", "s4", "s5",
+      "s6",   "s7", "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"};
+  std::vector<std::string> defs{"x0",  "x1",  "x2",  "x3",  "x4",  "x5",  "x6",
+                                "x7",  "x8",  "x9",  "x10", "x11", "x12", "x13",
+                                "x14", "x15", "x16", "x17", "x18", "x19", "x20",
+                                "x21", "x22", "x23", "x24", "x25", "x26", "x27",
+                                "x28", "x29", "x30", "x31"};
 
   for (int i = 0; i < 32; ++i) {
-    lt_insert(abi_map, defs[i], i);
-    lt_insert(abi_map, abis[i], i);
+    abi_map[defs[i]] = i;
+    abi_map[abis[i]] = i;
   }
-  lt_insert(abi_map, "fp", 8);
+  abi_map["fp"] = 8;
 
-  FILE *user_asm = fopen("input.asm", "r");
-  if (!user_asm) {
-    printf("The provided file, input.asm, is invalid.\n");
-    return 1;
+  std::ifstream is("input.asm");
+  std::string line;
+  while (std::getline(is, line)) {
+    user_lines.push_back(line);
   }
-
-  total_lines = 0;
-  char line[256];
-  while (fgets(line, sizeof(line), user_asm)) {
-    total_lines++;
-  }
-
-  code_lines = malloc(total_lines * sizeof(char *));
-
-  rewind(user_asm);
-
-  int line_index = 0;
-  while (fgets(line, sizeof(line), user_asm)) {
-    int len = strlen(line);
-    if (len > 0 && line[len - 1] == '\n') {
-      line[len - 1] = '\0';
-    }
-
-    code_lines[line_index] = malloc(len + 1);
-    strcpy(code_lines[line_index], line);
-    line_index++;
-  }
-
-  fclose(user_asm);
 
   pass(code_lines, total_lines);
-
-  return 0;
 }
 
 int run_code() {
@@ -604,11 +569,9 @@ void free_code() {
     registers[i] = 0;
   }
 
-  ht_free(memory);
-  memory = ht_init();
+  memory.clear();
 
-  lt_free(labels);
-  labels = lt_init();
+  labels.clear();
 
   if (user_instructions != NULL) {
     for (int i = 0; i < user_instruction_count; ++i) {

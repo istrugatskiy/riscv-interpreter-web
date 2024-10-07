@@ -1,1 +1,8 @@
-interpreter
+CMakeFiles
+cmake_install.cmake
+CMakeCache.txt
+Makefile
+compile_commands.json
+build.ninja
+em_build
+.cache

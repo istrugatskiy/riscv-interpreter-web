@@ -181,9 +181,6 @@ addi x1, x1, 1363
         'bigint',
     ]);
 
-    // This function is for memory activities.
-    // It needs to be fixed up soon.
-    const set_memory = mod.cwrap('set_memory', 'void', ['number', 'bigint']);
     const prepare_code = mod.cwrap('prepare_code', 'number', []);
     const run_code = mod.cwrap('run_code', 'number', []);
     const free_code = mod.cwrap('free_code', 'void', []);

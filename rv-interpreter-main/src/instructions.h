@@ -1,16 +1,18 @@
 #pragma once
-#include "hash_table.h"
-#include "label_table.h"
+#include <cstddef>
+#include <cstdint>
 #include <ctype.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
+#include <unordered_map>
 
 uint64_t registers[32] = {0};
-hashtable *memory;
-labeltable *labels;
-labeltable *abi_map;
+std::unordered_map<uint64_t, uint64_t> memory;
+std::unordered_map<std::string, uint64_t> labels;
+std::unordered_map<std::string, uint64_t> *abi_map;
 
 // R TYPE
 
@@ -176,15 +178,15 @@ void r_sraiw(int rd, int rs1, uint64_t imm) {
 // MEM TYPE
 
 void r_lb(int rd, int rs1, uint64_t imm) {
-  uint64_t byte = ht_get(memory, imm + registers[rs1]);
+  uint64_t byte = memory[imm + registers[rs1]];
   byte = byte & 0x80 ? byte | 0xFFFFFFFFFFFFFF00 : byte;
   registers[rd] = byte;
 }
 
 void r_lh(int rd, int rs1, uint64_t imm) {
   uint64_t toh = 0;
-  toh += (ht_get(memory, imm + registers[rs1]) & 0xFF);
-  toh += ((ht_get(memory, 1 + (imm + registers[rs1])) & 0xFF) << 8);
+  toh += (memory[imm + registers[rs1]] & 0xFF);
+  toh += ((memory[1 + (imm + registers[rs1])]) & 0xFF) << 8;
   toh = toh & 0x8000 ? toh | 0xFFFFFFFFFFFF0000 : toh;
   registers[rd] = toh;
 }
@@ -192,7 +194,7 @@ void r_lh(int rd, int rs1, uint64_t imm) {
 void r_lw(int rd, int rs1, uint64_t imm) {
   uint64_t tow = 0;
   for (int i = 0; i < 4; ++i) {
-    tow += ((ht_get(memory, i + (imm + registers[rs1])) & 0xFF) << (8 * i));
+    tow += (memory[i + (imm + registers[rs1])] & 0xFF) << (8 * i);
   }
   tow = tow & 0x80000000 ? tow | 0xFFFFFFFF00000000 : tow;
   registers[rd] = tow;
@@ -201,7 +203,7 @@ void r_lw(int rd, int rs1, uint64_t imm) {
 void r_ld(int rd, int rs1, uint64_t imm) {
   uint64_t tod = 0;
   for (int i = 0; i < 8; ++i) {
-    tod += ((ht_get(memory, i + (imm + registers[rs1])) & 0xFF) << (8 * i));
+    tod += (memory[i + (imm + registers[rs1])] & 0xFF) << (8 * i);
   }
   registers[rd] = tod;
 }
@@ -209,7 +211,7 @@ void r_ld(int rd, int rs1, uint64_t imm) {
 void r_sb(int rs1, int rs2, uint64_t imm, int off) {
   uint64_t byte = (registers[rs2] >> (8 * off)) & 0xFF;
   byte = byte & 0x80 ? byte | 0xFFFFFFFFFFFFFF00 : byte;
-  ht_insert(memory, registers[rs1] + imm + off, byte);
+  memory[registers[rs1] + imm + off] = byte;
 }
 
 void r_sh(int rs1, int rs2, uint64_t imm) {
