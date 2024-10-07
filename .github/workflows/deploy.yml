@@ -42,7 +42,7 @@ jobs:
               run: |
                   source ./emsdk/emsdk_env.sh
                   cd rv-interpreter-main
-                  emcc -O2 src/interpreter.c src/hash_table.c src/label_table.c -s MODULARIZE=1 -s EXPORT_NAME="MyModule" -s EXPORTED_FUNCTIONS='["_set_register", "_set_memory", "_prepare_code", "_run_code", "_free_code"]' -s "EXTRA_EXPORTED_RUNTIME_METHODS=['FS', 'ccall', 'cwrap']" -s FILESYSTEM=1 -s WASM_BIGINT=1 -s INCOMING_MODULE_JS_API=print,printErr --emit-tsd output.d.ts
+                  emcc -O2 src/interpreter.c src/label_table.c -s MODULARIZE=1 -s EXPORT_NAME="MyModule" -s EXPORTED_FUNCTIONS='["_set_register", "_set_memory", "_prepare_code", "_run_code", "_free_code"]' -s "EXTRA_EXPORTED_RUNTIME_METHODS=['FS', 'ccall', 'cwrap']" -s FILESYSTEM=1 -s WASM_BIGINT=1 -s INCOMING_MODULE_JS_API=print,printErr --emit-tsd output.d.ts
                   mv a.out.js ../src/output.js
                   mv a.out.wasm ../src/a.out.wasm
                   mv output.d.ts ../src/output.d.ts

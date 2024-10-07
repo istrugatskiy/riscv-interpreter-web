@@ -1,8 +1,10 @@
 {
-  "search.exclude": {
-    "**/.yarn": true,
-    "**/.pnp.*": true
-  },
-  "typescript.tsdk": ".yarn/sdks/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true
+    "search.exclude": {
+        "**/.yarn": true,
+        "**/.pnp.*": true
+    },
+    "typescript.tsdk": ".yarn/sdks/typescript/lib",
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+    "cmake.sourceDirectory": "/home/ilya/Desktop/code/html/riscv/rv-interpreter-main",
+    "clangd.arguments": ["--enable-config", "--limit-results=5000"]
 }

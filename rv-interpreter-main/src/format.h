@@ -1,188 +1,172 @@
 #pragma once
-#include "hash_table.h"
 #include "instructions.h"
-#include "label_table.h"
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
 #include <ctype.h>
 #include <inttypes.h>
+#include <iostream>
 #include <limits.h>
+#include <ostream>
+#include <regex>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
-const int R_TYPE = 0;
-const int I_TYPE = 1;
-const int MEM_TYPE = 2;
-const int U_TYPE = 3;
-const int B_TYPE = 4;
-const int BZ_TYPE = 5;
-const int DR_TYPE = 6;
-const int J_TYPE = 7;
-const int UNKNOWN_TYPE = 8;
+enum InstructionType {
+  R_TYPE,
+  I_TYPE,
+  MEM_TYPE,
+  U_TYPE,
+  B_TYPE,
+  BZ_TYPE,
+  DR_TYPE,
+  J_TYPE,
+  UNKNOWN_TYPE
+};
 
-/**
- * This function was written by the 3410 staff from a previous semester, and the
- * arrays have been modified + more 'types' for supporting pseudoinstructions
- * and jumps have been added Return the type of instruction for the given
- * operation
- */
-static int get_op_type(char *op) {
-  const char *r_type_op[] = {"add",  "sub",  "and",  "or",  "xor",  "slt",
-                             "sltu", "sll",  "sra",  "srl", "addw", "sllw",
-                             "srlw", "subw", "sraw", "mul"};
-  const char *i_type_op[] = {"addi",  "andi",  "ori",   "xori", "slti",
-                             "addiw", "slli",  "slliw", "srli", "srliw",
-                             "srai",  "sraiw", "sltiu"};
-  const char *mem_type_op[] = {"ld", "lw", "lh", "lb", "sd", "sw", "sh", "sb"};
-  const char *u_type_op[] = {"lui", "auipc"};
-  const char *b_type_op[] = {"beq",  "bne", "blt",  "bltu", "bge",
-                             "bgeu", "bgt", "bgtu", "ble",  "bleu"};
-  const char *bz_type_op[] = {"beqz", "bnez", "blez", "bgez", "bltz", "bgtz"};
-  const char *dr_type_op[] = {"mv",   "not",  "neg",  "negw", "sext.w",
-                              "seqz", "snez", "sltz", "sgtz"};
-  const char *j_type_op[] = {"jal", "jalr", "j", "jr", "ret"};
-  for (int i = 0; i < (int)(sizeof(r_type_op) / sizeof(char *)); i++) {
-    if (strcmp(r_type_op[i], op) == 0) {
-      return R_TYPE;
-    }
-  }
-  for (int i = 0; i < (int)(sizeof(i_type_op) / sizeof(char *)); i++) {
-    if (strcmp(i_type_op[i], op) == 0) {
-      return I_TYPE;
-    }
-  }
-  for (int i = 0; i < (int)(sizeof(mem_type_op) / sizeof(char *)); i++) {
-    if (strcmp(mem_type_op[i], op) == 0) {
-      return MEM_TYPE;
-    }
-  }
-  for (int i = 0; i < (int)(sizeof(u_type_op) / sizeof(char *)); i++) {
-    if (strcmp(u_type_op[i], op) == 0) {
-      return U_TYPE;
-    }
-  }
-  for (int i = 0; i < (int)(sizeof(b_type_op) / sizeof(char *)); i++) {
-    if (strcmp(b_type_op[i], op) == 0) {
-      return B_TYPE;
-    }
-  }
-  for (int i = 0; i < (int)(sizeof(bz_type_op) / sizeof(char *)); i++) {
-    if (strcmp(bz_type_op[i], op) == 0) {
-      return BZ_TYPE;
-    }
-  }
-  for (int i = 0; i < (int)(sizeof(dr_type_op) / sizeof(char *)); i++) {
-    if (strcmp(dr_type_op[i], op) == 0) {
-      return DR_TYPE;
-    }
-  }
-  for (int i = 0; i < (int)(sizeof(j_type_op) / sizeof(char *)); i++) {
-    if (strcmp(j_type_op[i], op) == 0) {
-      return J_TYPE;
-    }
-  }
+typedef struct {
+  std::string original;
+  std::string parsed;
+  size_t source_line;
+} inst;
+
+std::vector<inst> user_instructions;
+
+int64_t handle_error(const inst instruction, const std::string error_msg) {
+  std::cout << "Fatal error on line " << instruction.source_line << std::endl;
+  std::cout << error_msg << " @ " << instruction.original << std::endl;
+  std::cout << "Reset the interpreter!" << std::endl;
+  return INT64_MIN;
+}
+
+static InstructionType get_op_type(std::string op) {
+  // Todo: mul should be in it's own category.
+  const std::unordered_set<std::string> r_type_op{
+      "add", "sub", "and",  "or",   "xor",  "slt",  "sltu", "sll",
+      "sra", "srl", "addw", "sllw", "srlw", "subw", "sraw", "mul"};
+  const std::unordered_set<std::string> i_type_op{
+      "addi",  "andi", "ori",   "xori", "slti",  "addiw", "slli",
+      "slliw", "srli", "srliw", "srai", "sraiw", "sltiu"};
+  const std::unordered_set<std::string> mem_type_op{"ld", "lw", "lh", "lb",
+                                                    "sd", "sw", "sh", "sb"};
+  const std::unordered_set<std::string> u_type_op{"lui", "auipc"};
+  const std::unordered_set<std::string> b_type_op{
+      "beq", "bne", "blt", "bltu", "bge", "bgeu", "bgt", "bgtu", "ble", "bleu"};
+  const std::unordered_set<std::string> bz_type_op{"beqz", "bnez", "blez",
+                                                   "bgez", "bltz", "bgtz"};
+  const std::unordered_set<std::string> dr_type_op{
+      "mv", "not", "neg", "negw", "sext.w", "seqz", "snez", "sltz", "sgtz"};
+  const std::unordered_set<std::string> j_type_op{"jal", "jalr", "j", "jr",
+                                                  "ret"};
+  if (r_type_op.contains(op))
+    return R_TYPE;
+  if (i_type_op.contains(op))
+    return I_TYPE;
+  if (mem_type_op.contains(op))
+    return MEM_TYPE;
+  if (u_type_op.contains(op))
+    return U_TYPE;
+  if (b_type_op.contains(op))
+    return B_TYPE;
+  if (bz_type_op.contains(op))
+    return BZ_TYPE;
+  if (dr_type_op.contains(op))
+    return DR_TYPE;
+  if (j_type_op.contains(op))
+    return J_TYPE;
   return UNKNOWN_TYPE;
 }
 
-typedef struct {
-  char *instruction;
-  int source_line;
-} inst;
-
-inst *user_instructions;
-int user_instruction_count = 0;
-
-int blank_or_comment(char *line) {
-  while (*line && isspace(*line))
-    line++;
-  return *line == '\0' || *line == '#';
+inline void ltrim(std::string &s) {
+  s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+            return !std::isspace(ch);
+          }));
 }
 
-void pass(char **user_assembly, int line_count) {
-  int current_address = 0;
-  user_instructions = (inst *)malloc(line_count * sizeof(inst));
-
-  for (int i = 0; i < line_count; ++i) {
-    char *line = user_assembly[i];
-
-    if (blank_or_comment(line)) {
-      continue;
-    }
-
-    char *colon = strchr(line, ':');
-    if (colon) {
-      *colon = '\0';
-      lt_insert(labels, line, current_address);
-      line = colon + 1;
-      continue;
-    }
-
-    int index = current_address / 4;
-    user_instructions[index].instruction = strdup(line);
-    user_instructions[index].source_line = i;
-    user_instruction_count++;
-    current_address += 4;
-  }
+inline void rtrim(std::string &s) {
+  s.erase(std::find_if(s.rbegin(), s.rend(),
+                       [](unsigned char ch) { return !std::isspace(ch); })
+              .base(),
+          s.end());
 }
 
-int is_decimal_digits(const char *str) {
-  if (!isdigit(str[0])) {
-    if (str[0] != '-' || !isdigit(str[1])) {
-      return 0;
+/**
+ * The goal of pass is to remove comments from lines, trim them, and construct a
+ * label table. The processed instructions are all lowercase.
+ */
+void pass(std::vector<std::string> lines) {
+  uint64_t current_address = 0;
+  size_t source_line = 0;
+  for (const std::string line : lines) {
+    size_t comment = line.find('#');
+    std::string line_no_comment = line;
+    if (comment != std::string::npos) {
+      line_no_comment = line_no_comment.substr(0, comment);
+    }
+    std::transform(line_no_comment.begin(), line_no_comment.end(),
+                   line_no_comment.begin(), ::tolower);
+    ltrim(line_no_comment);
+    rtrim(line_no_comment);
+    size_t label_offset = line_no_comment.find(':');
+    if (label_offset != std::string::npos) {
+      std::string label = line_no_comment.substr(0, label_offset);
+      labels[label] = current_address;
     } else {
-      str++;
+      user_instructions.push_back(inst{.original = line,
+                                       .parsed = line_no_comment,
+                                       .source_line = source_line});
+      current_address += 4;
     }
+    source_line++;
   }
-  while (*str) {
-    if (!isdigit(*str)) {
-      return 0;
-    }
-    str++;
-  }
-  return 1;
 }
 
-int is_hex_digits(const char *str) {
-  while (*str) {
-    if (!isxdigit(*str)) {
-      return 0;
-    }
-    str++;
-  }
-  return 1;
+bool is_decimal_digits(const std::string str) {
+  const static std::regex integer_regex("^-?\\d+$");
+  return std::regex_match(str, integer_regex);
 }
 
-uint64_t imm_label(char *imm_s) {
-  uint64_t imm = INT_MIN;
-  int branch_line = lt_get(labels, imm_s);
-  if (branch_line == -1) {
-    if (strncmp(imm_s, "0x", 2) == 0 && is_hex_digits(imm_s + 2)) {
-      imm = strtoull(imm_s, NULL, 16);
-    } else if (is_decimal_digits(imm_s)) {
-      imm = strtoull(imm_s, NULL, 10);
-    }
-  } else {
-    imm = branch_line;
-  }
-  return imm;
+bool is_hex_digits(const std::string str) {
+  return str.find_first_not_of("0123456789abcdefABCDEF") == std::string::npos;
 }
 
-uint64_t read_offset(char *tokens, char *imm_s, uint64_t imm) {
+uint64_t imm_label(const std::string imm_s) {
+  if (labels.contains(imm_s))
+    return labels[imm_s];
+
+  if (imm_s.starts_with("0x") && imm_s.length() > 2 &&
+      is_hex_digits(imm_s.substr(2))) {
+    return std::stoull(imm_s);
+  } else if (is_decimal_digits(imm_s)) {
+    return std::stoull(imm_s);
+  }
+  return INT_MIN;
+}
+
+uint64_t read_offset(std::vector<std::string> tokens, std::string imm_s,
+                     uint64_t imm) {
   char *etokens = strdup(tokens);
-  if (lt_get(labels, imm_s) != -1) {
-    tokens = strtok(NULL, "+ ");
-    if (tokens != NULL) {
-      uint64_t inc_imm = imm_label(tokens);
-      if (inc_imm == (uint64_t)INT_MIN) {
-        etokens = strtok(NULL, "- ");
-        if (etokens != NULL) {
-          uint64_t dec_imm = imm_label(etokens);
-          imm = dec_imm != (uint64_t)INT_MIN ? imm - dec_imm : imm;
-        }
-      } else {
-        imm += inc_imm;
+  if (!labels.contains(imm_s))
+    return imm;
+  tokens = strtok(NULL, "+ ");
+  if (tokens != NULL) {
+    uint64_t inc_imm = imm_label(tokens);
+    if (inc_imm == (uint64_t)INT_MIN) {
+      etokens = strtok(NULL, "- ");
+      if (etokens != NULL) {
+        uint64_t dec_imm = imm_label(etokens);
+        imm = dec_imm != (uint64_t)INT_MIN ? imm - dec_imm : imm;
       }
+    } else {
+      imm += inc_imm;
     }
   }
+
   return imm;
 }
 
@@ -296,11 +280,9 @@ int validate_format(const char *str, int expected_items, int beq) {
   }
 }
 
-int get_register(char *str) {
-  int reg = lt_get(abi_map, str);
-  if (reg == -1) {
-    printf("Malformed instruction.\nPlease reset.\n");
-    return -1;
+int64_t get_register(std::string str, const inst instruction) {
+  if (!labels.contains(str)) {
+    return handle_error(instruction, str + " is not a valid register name");
   }
-  return reg;
+  return labels[str];
 }
