@@ -1,0 +1,19 @@
+{
+    "name": "@istrugatskiy/riscv-parser",
+    "packageManager": "yarn@4.4.1",
+    "private": true,
+    "type": "module",
+    "module": "riscv.ts",
+    "license": "CC0-1.0",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/istrugatskiy/riscv-interpreter-web.git",
+        "directory": "packages/riscv-parser"
+    },
+    "devDependencies": {
+        "vitest": "^2.1.8"
+    },
+    "scripts": {
+        "test": "vitest"
+    }
+}
