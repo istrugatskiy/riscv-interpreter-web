@@ -1,9 +1,9 @@
+import { reg_label, reg_reg_imm, reg_reg_label, reg_reg_reg } from './guards';
 import {
     bytecode_of_string,
     def_macro,
     imm_register,
     immediate,
-    immediate_or_label,
     register,
     valid_list,
 } from './lib_macro';
@@ -27,20 +27,14 @@ const R_TYPE = (
         'sraw',
     ] as const
 ).map((name) =>
-    def_macro(
-        name,
-        3,
-        ([rd, rs1, rs2]) =>
-            valid_list([register(rd), register(rs1), register(rs2)] as const),
-        ([rd, rs1, rs2]) => [
-            {
-                name,
-                rd,
-                rs1,
-                rs2,
-            },
-        ]
-    )
+    def_macro(name, 3, reg_reg_reg, ([rd, rs1, rs2]) => [
+        {
+            name,
+            rd,
+            rs1,
+            rs2,
+        },
+    ])
 );
 
 const I_TYPE = (
@@ -60,17 +54,9 @@ const I_TYPE = (
         'sraiw',
     ] as const
 ).map((name) =>
-    def_macro(
-        name,
-        3,
-        ([rd, rs1, imm]) =>
-            valid_list([
-                register(rd),
-                register(rs1),
-                immediate(imm, -2048n, 2047n),
-            ] as const),
-        ([rd, rs1, imm]) => [{ name, rd, rs1, imm }]
-    )
+    def_macro(name, 3, reg_reg_imm, ([rd, rs1, imm]) => [
+        { name, rd, rs1, imm },
+    ])
 );
 
 const MEM_TYPE = (
@@ -100,41 +86,16 @@ const U_TYPE = (['lui', 'auipc'] as const).map((name) =>
 
 const B_TYPE = (['beq', 'bne', 'blt', 'bltu', 'bge', 'bgeu'] as const).map(
     (name) =>
-        def_macro(
-            name,
-            3,
-            ([rs1, rs2, imm], labels) =>
-                valid_list([
-                    register(rs1),
-                    register(rs2),
-                    immediate_or_label(imm, 0n, 2n ** 64n, labels),
-                ] as const),
-            ([rs1, rs2, imm]) => [{ name, rs1, rs2, imm }]
-        )
+        def_macro(name, 3, reg_reg_label, ([rs1, rs2, imm]) => [
+            { name, rs1, rs2, imm },
+        ])
 );
 
 const J_TYPE = [
-    def_macro(
-        'jal',
-        2,
-        ([rd, imm], labels) =>
-            valid_list([
-                register(rd),
-                immediate_or_label(imm, 0n, 2n ** 64n, labels),
-            ] as const),
-        ([rd, imm]) => [{ name: 'jal', rd, imm }]
-    ),
-    def_macro(
-        'jalr',
-        3,
-        ([rd, rs1, imm], label_context) =>
-            valid_list([
-                register(rd),
-                register(rs1),
-                immediate_or_label(imm, 0n, 2n ** 64n, label_context),
-            ] as const),
-        ([rd, rs1, imm]) => [{ name: 'jalr', rd, rs1, imm }]
-    ),
+    def_macro('jal', 2, reg_label, ([rd, imm]) => [{ name: 'jal', rd, imm }]),
+    def_macro('jalr', 3, reg_reg_label, ([rd, rs1, imm]) => [
+        { name: 'jalr', rd, rs1, imm },
+    ]),
 ];
 
 export const CORE_MACROS = [
@@ -147,3 +108,27 @@ export const CORE_MACROS = [
 ].flat();
 
 export const core = bytecode_of_string.bind(null, CORE_MACROS);
+
+// Oh wow, its template tag literal o'clock. :)))))))))
+// Thx stackoverflow: https://stackoverflow.com/questions/68152638/what-is-the-default-tag-function-for-template-literals
+export const coret = <TValues extends unknown[]>(
+    parts: TemplateStringsArray,
+    ...values: TValues
+): instruction[] => {
+    const prog = core(
+        parts
+            .flatMap((part, i) =>
+                i < values.length ? [part, String(values[i])] : [part]
+            )
+            .join('')
+    );
+
+    if (prog.every((el) => 'instructions' in el)) {
+        return prog.flatMap(({ instructions }) => instructions);
+    }
+    throw new Error(
+        `Failed to expand macro code segment!
+The following errors occurred:
+${JSON.stringify(prog, null, 4)}`
+    );
+};

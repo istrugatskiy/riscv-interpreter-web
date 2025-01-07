@@ -7,6 +7,11 @@ import {
 } from './parser';
 import { abi_map } from './register_abis';
 
+/**
+ * Multiline macros don't handle labels well (yet).
+ * Be very careful with them.
+ * This is also a TODO for me to fix my code.
+ */
 export const def_macro = <T>(
     name: string,
     args: number,
