@@ -32,7 +32,7 @@ export const parse_file = (source: string): riscv_ir | compile_error[] => {
         .split(/\r\n|\r|\n/g)
         .map((line, line_no) => ({
             string_rep: line.trim(),
-            code_line: line_no,
+            code_line: line_no + 1,
             normalized: remove_comment(line).trim().replaceAll(/ [ ]*/g, ' '),
         }))
         .filter(({ normalized }) => normalized)
@@ -42,7 +42,7 @@ export const parse_file = (source: string): riscv_ir | compile_error[] => {
         !((normalized.at(0) ?? '0') >= '0' && (normalized.at(0) ?? '0') <= '9');
     const instr_pred = ({ normalized }: { normalized: string }) =>
         // Sus half GPT regex...
-        /^[a-zA-Z_][a-zA-Z0-9_.]*(\s+((\s*[0-9a-zA-Z_.()]+\s*)(,\s*[0-9a-zA-Z_.()]+\s*)*)?)?$/.test(
+        /^[a-zA-Z_][a-zA-Z0-9_.]*(\s+((\s*[0-9a-zA-Z_.()-]+\s*)(,\s*[0-9a-zA-Z_.()-]+\s*)*)?)?$/.test(
             normalized
         );
     const invalid_lines = lines.filter(

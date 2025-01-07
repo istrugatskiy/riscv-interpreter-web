@@ -6,14 +6,14 @@ import { parse_file } from './parser';
 // TBH if you can be replaced by GPT, you are an NPC.
 test('Parses valid lines with instructions, labels, and comments', () => {
     expect(
-        parse_file(`
-    main:  # Entry point
+        parse_file(`main:  # Entry point
     temp42:
     add x1, x2, x3  # Addition instruction
     beq x4, x5, loop # Branch if equal
     loop:
     sub x6, x7, x8  # Subtraction
     nop
+    addi x1, x2, -1
   `)
     ).toStrictEqual({
         labels: new Map([
@@ -41,14 +41,19 @@ test('Parses valid lines with instructions, labels, and comments', () => {
                 code_line: 6,
             },
             { name: 'nop', args: [], string_rep: 'nop', code_line: 7 },
+            {
+                name: 'addi',
+                args: ['x1', 'x2', '-1'],
+                code_line: 8,
+                string_rep: 'addi x1, x2, -1',
+            },
         ],
     });
 });
 
 test('Handles excessive spacing and blank lines', () => {
     expect(
-        parse_file(`
-      main:     
+        parse_file(`main:     
       
     add   x1,   x2,   0(x3) # This instruction is stupid, but the parser is stupider.      
     
@@ -80,8 +85,7 @@ test('Handles excessive spacing and blank lines', () => {
 
 test('Detects invalid lines', () => {
     expect(
-        parse_file(`
-    main:
+        parse_file(`main:
     add x1, x2, x3
     invalid_instruction # This should work fine, the parser doesn't know which macros exist.
     sub x4 x5 x6 # Missing commas
@@ -100,8 +104,7 @@ Is not empty but does not match label_expr | macro_expr`,
 
 test('Labels that go out of bounds point to code_lines.length + 1', () => {
     expect(
-        parse_file(`
-    start:
+        parse_file(`start:
     loop:
     end:
   `)
@@ -117,8 +120,7 @@ test('Labels that go out of bounds point to code_lines.length + 1', () => {
 
 test('Detects invalid labels', () => {
     expect(
-        parse_file(`
-    valid_label:
+        parse_file(`valid_label:
     add x1, x2, x3
     ())):
     invalid_instruction_here

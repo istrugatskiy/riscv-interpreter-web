@@ -118,7 +118,16 @@ export const coret = <TValues extends unknown[]>(
     const prog = core(
         parts
             .flatMap((part, i) =>
-                i < values.length ? [part, String(values[i])] : [part]
+                i < values.length
+                    ? [
+                          part,
+                          String(
+                              Number.isInteger(values[i])
+                                  ? `x${values[i]}`
+                                  : values[i]
+                          ),
+                      ]
+                    : [part]
             )
             .join('')
     );

@@ -12,3 +12,18 @@
  *    types.d.ts. Note, how each code line may or may not expand to multiple instructions, these
  *    should be part of the same sub-array, this is so each step in the interpreter <=> one code line step.
  */
+
+import { CORE_MACROS } from './core_macros';
+import { bytecode_of_string } from './lib_macro';
+import { PSEUDO } from './pseudo_macros';
+
+export * from './core_macros';
+export * from './pseudo_macros';
+export * from './lib_macro';
+export * from './guards';
+export * from './parser';
+
+export const compile_riscv = bytecode_of_string.bind(null, [
+    ...CORE_MACROS,
+    ...PSEUDO,
+]);
