@@ -1,4 +1,10 @@
-import { compile_error, macro_epxr, riscv_ir, string_of_macro } from './parser';
+import {
+    compile_error,
+    macro_epxr,
+    parse_file,
+    riscv_ir,
+    string_of_macro,
+} from './parser';
 import { abi_map } from './register_abis';
 
 export const def_macro = <T>(
@@ -62,6 +68,19 @@ Hint: You probably used an unsupported (or misspelled) instruction.`,
     return instructions_with_errors.filter(
         (inst): inst is program[0] => !('message' in inst)
     );
+};
+
+export const bytecode_of_string = (
+    macros: ReturnType<typeof def_macro>[],
+    code: string
+) => {
+    const ir = parse_file(code);
+    // Return compile errors separately.
+    // I know this check is a bit scuffed...
+    if (Array.isArray(ir)) {
+        return ir;
+    }
+    return expand_code(ir, macros);
 };
 /** Returns the list if it is valid, otherwise returns undefined if any element of list is undefined. */
 export const valid_list = <T extends unknown[]>(

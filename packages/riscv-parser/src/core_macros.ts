@@ -1,13 +1,12 @@
 import {
+    bytecode_of_string,
     def_macro,
-    expand_code,
     imm_register,
     immediate,
     immediate_or_label,
     register,
     valid_list,
 } from './lib_macro';
-import { parse_file } from './parser';
 
 const R_TYPE = (
     [
@@ -147,10 +146,4 @@ export const CORE_MACROS = [
     J_TYPE,
 ].flat();
 
-export const core = (code: string) => {
-    const parsed = parse_file(code);
-    if (Array.isArray(parsed)) {
-        return parsed;
-    }
-    return expand_code(parsed, CORE_MACROS);
-};
+export const core = bytecode_of_string.bind(null, CORE_MACROS);
