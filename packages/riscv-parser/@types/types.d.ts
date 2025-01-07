@@ -4,8 +4,10 @@
  * Instructions are newline separated.
  */
 type program = {
-    lines: { instructions: instruction[]; string_rep: string }[];
-};
+    instructions: instruction[];
+    string_rep: string;
+    line_no: number;
+}[];
 
 // TODO: figure out mul and div extension.
 // These pseudo instructions are also supported:
@@ -107,4 +109,4 @@ type j_type =
     | { name: 'jal'; rd: number; imm: bigint }
     | { name: 'jalr'; rd: number; rs1: number; imm: bigint };
 
-type instruction = r_type | i_type | mem_type | u_type | b_type;
+type instruction = r_type | i_type | mem_type | u_type | b_type | j_type;

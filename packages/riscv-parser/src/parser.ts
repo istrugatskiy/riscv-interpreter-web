@@ -92,9 +92,6 @@ Normalized as: ${normalized}`);
     };
 };
 
-export const string_of_err = ({ message, line }: compile_error) =>
-    `${message} @@ ${line}`;
-
 export const string_of_macro = ({
     name,
     args,
