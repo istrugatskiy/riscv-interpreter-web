@@ -8,25 +8,24 @@ import {
     valid_list,
 } from './lib_macro';
 
-const R_TYPE = (
-    [
-        'and',
-        'add',
-        'sub',
-        'or',
-        'xor',
-        'slt',
-        'sltu',
-        'sll',
-        'sra',
-        'srl',
-        'addw',
-        'sllw',
-        'srlw',
-        'subw',
-        'sraw',
-    ] as const
-).map((name) =>
+export const R_NAMES = [
+    'and',
+    'add',
+    'sub',
+    'or',
+    'xor',
+    'slt',
+    'sltu',
+    'sll',
+    'sra',
+    'srl',
+    'addw',
+    'sllw',
+    'srlw',
+    'subw',
+    'sraw',
+] as const;
+const R_TYPE = R_NAMES.map((name) =>
     def_macro(name, 3, reg_reg_reg, ([rd, rs1, rs2]) => [
         {
             name,
@@ -37,31 +36,38 @@ const R_TYPE = (
     ])
 );
 
-const I_TYPE = (
-    [
-        'addi',
-        'andi',
-        'ori',
-        'xori',
-        'slti',
-        'sltiu',
-        'addiw',
-        'slli',
-        'slliw',
-        'srli',
-        'srliw',
-        'srai',
-        'sraiw',
-    ] as const
-).map((name) =>
+export const I_NAMES = [
+    'addi',
+    'andi',
+    'ori',
+    'xori',
+    'slti',
+    'sltiu',
+    'addiw',
+    'slli',
+    'slliw',
+    'srli',
+    'srliw',
+    'srai',
+    'sraiw',
+] as const;
+const I_TYPE = I_NAMES.map((name) =>
     def_macro(name, 3, reg_reg_imm, ([rd, rs1, imm]) => [
         { name, rd, rs1, imm },
     ])
 );
 
-const MEM_TYPE = (
-    ['lb', 'lh', 'lw', 'ld', 'sb', 'sh', 'sw', 'sd'] as const
-).map((name) =>
+export const MEM_NAMES = [
+    'lb',
+    'lh',
+    'lw',
+    'ld',
+    'sb',
+    'sh',
+    'sw',
+    'sd',
+] as const;
+const MEM_TYPE = MEM_NAMES.map((name) =>
     def_macro(
         name,
         2,
@@ -74,7 +80,8 @@ const MEM_TYPE = (
     )
 );
 
-const U_TYPE = (['lui', 'auipc'] as const).map((name) =>
+export const U_NAMES = ['lui', 'auipc'] as const;
+const U_TYPE = U_NAMES.map((name) =>
     def_macro(
         name,
         2,
@@ -84,11 +91,11 @@ const U_TYPE = (['lui', 'auipc'] as const).map((name) =>
     )
 );
 
-const B_TYPE = (['beq', 'bne', 'blt', 'bltu', 'bge', 'bgeu'] as const).map(
-    (name) =>
-        def_macro(name, 3, reg_reg_label, ([rs1, rs2, imm]) => [
-            { name, rs1, rs2, imm },
-        ])
+export const B_NAMES = ['beq', 'bne', 'blt', 'bltu', 'bge', 'bgeu'] as const;
+const B_TYPE = B_NAMES.map((name) =>
+    def_macro(name, 3, reg_reg_label, ([rs1, rs2, imm]) => [
+        { name, rs1, rs2, imm },
+    ])
 );
 
 const J_TYPE = [

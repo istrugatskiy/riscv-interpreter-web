@@ -13,7 +13,14 @@
  *    should be part of the same sub-array, this is so each step in the interpreter <=> one code line step.
  */
 
-import { CORE_MACROS } from './core_macros';
+import {
+    B_NAMES,
+    CORE_MACROS,
+    I_NAMES,
+    MEM_NAMES,
+    R_NAMES,
+    U_NAMES,
+} from './core_macros';
 import { bytecode_of_string } from './lib_macro';
 import { PSEUDO } from './pseudo_macros';
 
@@ -27,3 +34,21 @@ export const compile_riscv = bytecode_of_string.bind(null, [
     ...CORE_MACROS,
     ...PSEUDO,
 ]);
+
+const belongs_to_array = <TValue>(
+    value: unknown,
+    allowedValues: ReadonlyArray<TValue>
+): value is TValue => (allowedValues as ReadonlyArray<unknown>).includes(value);
+
+export const is_r_type = (inst: instruction): inst is r_type =>
+    belongs_to_array(inst.name, R_NAMES);
+export const is_i_type = (inst: instruction): inst is i_type =>
+    belongs_to_array(inst.name, I_NAMES);
+export const is_mem_type = (inst: instruction): inst is mem_type =>
+    belongs_to_array(inst.name, MEM_NAMES);
+export const is_u_type = (inst: instruction): inst is u_type =>
+    belongs_to_array(inst.name, U_NAMES);
+export const is_b_type = (inst: instruction): inst is b_type =>
+    belongs_to_array(inst.name, B_NAMES);
+export const is_j_type = (inst: instruction): inst is j_type =>
+    belongs_to_array(inst.name, ['jal', 'jalr']);

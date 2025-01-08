@@ -8,9 +8,9 @@ import {
 import { abi_map } from './register_abis';
 
 /**
- * Multiline macros don't handle labels well (yet).
- * Be very careful with them.
- * This is also a TODO for me to fix my code.
+ * Note that multi-line macros (with several bytecode instructions) will set the pc
+ * to the pc of the last instruction only. So if there was a beq followed by addi's,
+ * the beq would be meaningless. If there were multipl adds, pc would only go up by 4.
  */
 export const def_macro = <T>(
     name: string,

@@ -1,0 +1,11 @@
+{
+  "name": "riscv-vm",
+  "packageManager": "yarn@4.4.1",
+  "dependencies": {
+    "@istrugatskiy/riscv-parser": "workspace:^"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "vitest": "^2.1.8"
+  }
+}
