@@ -144,6 +144,7 @@ export const immediate_or_label = (
     // implement relative addressing, ie [number]b, [number]f,
     // for example: 10b, 10 instructions back (pc = pc - 10 * 4),
     // 12f, 12 instructions forward (pc = pc + 12 * 4)
+    // Also add +, - offsets, so label + 12, or label - 10...
     if (imm_label === undefined) return undefined;
     const label = label_table.get(imm_label);
     if (label !== undefined) {

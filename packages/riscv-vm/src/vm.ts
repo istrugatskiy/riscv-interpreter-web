@@ -39,6 +39,11 @@ export const VirtualMachine = class {
         ) {
             throw new Error('Illegal pc state');
         }
+        if ((this.#registers[0] ?? 0n) !== 0n) {
+            throw new Error(
+                `Illegal zero register state: x0 = ${this.#registers[0]}`
+            );
+        }
         const inst = this.#program[Number(this.#pc % 4n)];
 
         if (inst === undefined) {
@@ -147,6 +152,25 @@ export const VirtualMachine = class {
             }
             return this.#pc + 4n;
         } else if (is_mem_type(inst)) {
+            const { name, rd, rs1, imm } = inst;
+            const left = this.#registers[rd],
+                right = this.#registers[rs1];
+            if (left === undefined || right === undefined) {
+                throw new Error('Registers out of range');
+            }
+            // If instruction is a store, rs1 = left, rs2 = right.
+            const store_range = (start: bigint, end: bigint) => {
+                for (let offset = start; offset < end; offset++) {
+                    const byte = BigInt.asIntN(8, right >> (8n * offset));
+                    this.#memory.set(left + imm + offset, byte);
+                }
+            };
+            const load_range = (start: bigint, end: bigint) => {
+                for (let offset = start; offset < end; offset++) {
+                    // TODO
+                }
+            };
+            return this.#pc + 4n;
         } else if (is_u_type(inst)) {
             const { name, rd, imm } = inst;
             // We sign extend the 32 bit immediate to a full 64 bits.
@@ -163,6 +187,24 @@ export const VirtualMachine = class {
             }
             return this.#pc + 4n;
         } else if (is_b_type(inst)) {
+            const { name, rs1, rs2, imm } = inst;
+            const left = this.#registers[rs1],
+                right = this.#registers[rs2];
+            if (left === undefined || right === undefined) {
+                throw new Error('Registers out of range');
+            }
+            if (
+                (name === 'beq' && left === right) ||
+                (name === 'bne' && left !== right) ||
+                (name === 'blt' && int64_t(left) < int64_t(right)) ||
+                (name === 'bltu' && left < right) ||
+                (name === 'bge' && int64_t(left) >= int64_t(right)) ||
+                (name === 'bgeu' && left >= right)
+            ) {
+                return imm;
+            }
+
+            return this.#pc + 4n;
         } else if (is_j_type(inst)) {
             const { name, rd, imm } = inst;
             if (rd !== 0) {

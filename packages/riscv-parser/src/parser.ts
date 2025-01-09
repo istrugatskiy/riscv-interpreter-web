@@ -10,6 +10,12 @@ export type riscv_ir = {
     labels: Map<string, number>;
     code_lines: macro_epxr[];
 };
+// TODO TLDR overall:
+//  - Add suppport for whitespace in the middle of arguments.
+//  - Add support for + in arguments, so that label offsets work.
+//  - Forward and backward support in labels.
+//  - Add mul extension support.
+
 // Thrown when a line does not contain one valid statement.
 // A valid line is defined as follows:
 // named_literal = a-z, A-Z, ., 0-9, _ (note no commas in named_literals, can't start with digit)
