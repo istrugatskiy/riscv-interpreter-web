@@ -140,10 +140,14 @@ export const immediate_or_label = (
     max: bigint,
     label_table: Map<string, number>
 ): bigint | undefined => {
+    // TODO: https://michaeljclark.github.io/asm.html
+    // implement relative addressing, ie [number]b, [number]f,
+    // for example: 10b, 10 instructions back (pc = pc - 10 * 4),
+    // 12f, 12 instructions forward (pc = pc + 12 * 4)
     if (imm_label === undefined) return undefined;
     const label = label_table.get(imm_label);
     if (label !== undefined) {
-        return BigInt(label) * 4n;
+        return (BigInt(label) - 1n) * 4n;
     }
     const imm = immediate(imm_label, min, max);
     if ((imm ?? 0n) % 4n !== 0n) {

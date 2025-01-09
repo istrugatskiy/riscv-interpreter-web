@@ -49,7 +49,7 @@ describe('compile_riscv', () => {
             expect(flatten_bytecode(result)[1]).toEqual({
                 name: 'jal',
                 rd: 0,
-                imm: 4n,
+                imm: 0n,
             });
         }
     });
