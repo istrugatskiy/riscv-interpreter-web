@@ -159,17 +159,34 @@ export const VirtualMachine = class {
                 throw new Error('Registers out of range');
             }
             // If instruction is a store, rs1 = left, rs2 = right.
-            const store_range = (start: bigint, end: bigint) => {
-                for (let offset = start; offset < end; offset++) {
+            const store_range = (end: bigint) => {
+                for (let offset = 0n; offset < end; offset++) {
                     const byte = BigInt.asIntN(8, right >> (8n * offset));
                     this.#memory.set(left + imm + offset, byte);
                 }
             };
-            const load_range = (start: bigint, end: bigint) => {
-                for (let offset = start; offset < end; offset++) {
-                    // TODO
+            const load_range = (end: bigint) => {
+                let out = 0n;
+                for (let offset = 0n; offset < end; offset++) {
+                    const byte_val =
+                        this.#memory.get(offset + right + imm) ?? 0n;
+                    out += (byte_val & 0xffn) << (8n * offset);
                 }
+                this.#registers[rd] = uint64_t(
+                    BigInt.asIntN(8 * Number(end), out)
+                );
             };
+            const func = name.at(0) === 's' ? store_range : load_range;
+            const size = <'b' | 'h' | 'w' | 'd'>name.at(1);
+            if (size === 'b') {
+                func(1n);
+            } else if (size === 'h') {
+                func(2n);
+            } else if (size === 'w') {
+                func(4n);
+            } else if (size == 'd') {
+                func(8n);
+            }
             return this.#pc + 4n;
         } else if (is_u_type(inst)) {
             const { name, rd, imm } = inst;
@@ -222,5 +239,6 @@ export const VirtualMachine = class {
                 return result;
             }
         }
+        throw new Error('Illegal Command');
     }
 };
