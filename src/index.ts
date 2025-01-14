@@ -3,7 +3,6 @@ import { basicSetup, EditorView } from 'codemirror';
 import { StreamLanguage } from '@codemirror/language';
 import { materialDark } from '@uiw/codemirror-theme-material';
 
-import MyModule from './output';
 import { riscv } from './syntax';
 
 /**
@@ -86,13 +85,13 @@ const append_register_rows = (
 
     const create_column = (startIndex: number) => {
         const column = document.createElement('div');
-        column.className = 'flex flex-col'; // Make each column take half the width
+        column.className = 'flex flex-col';
 
         const fragment = document.createDocumentFragment();
         for (let i = startIndex; i < startIndex + 16; i++) {
             if (i < register_mnemonics.length) {
                 fragment.appendChild(
-                    create_table_row(0, register_mnemonics[i])
+                    create_table_row(0, register_mnemonics[i]!)
                 );
             }
         }
@@ -104,11 +103,11 @@ const append_register_rows = (
     const container = document.createElement('div');
     container.className = 'flex justify-evenly flex-wrap';
 
-    const leftColumn = create_column(0);
-    container.appendChild(leftColumn);
+    const left_column = create_column(0);
+    container.appendChild(left_column);
 
-    const rightColumn = create_column(16);
-    container.appendChild(rightColumn);
+    const right_column = create_column(16);
+    container.appendChild(right_column);
 
     // Append the container to the table body
     table_body.appendChild(container);
@@ -145,9 +144,7 @@ window.interpreter = {
     },
 };
 
-const Module = MyModule({ print: log_line });
-
-Module.then((mod) => {
+window.addEventListener('load', () => {
     let code_prepared = false;
     let stop_requested = false;
 
@@ -176,17 +173,6 @@ addi x1, x1, 1363
     let pc = 0;
     let prev_pc = -1;
 
-    const set_register = mod.cwrap('set_register', 'void', [
-        'bigint',
-        'bigint',
-    ]);
-
-    // This function is for memory activities.
-    // It needs to be fixed up soon.
-    const set_memory = mod.cwrap('set_memory', 'void', ['number', 'bigint']);
-    const prepare_code = mod.cwrap('prepare_code', 'number', []);
-    const run_code = mod.cwrap('run_code', 'number', []);
-    const free_code = mod.cwrap('free_code', 'void', []);
     const get_button = (id: string) =>
         document.getElementById(id) as HTMLButtonElement;
     const b_reset = get_button('reset');

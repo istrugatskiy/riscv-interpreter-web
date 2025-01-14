@@ -29,9 +29,6 @@
         "vitest": "^2.1.8",
         "vm-browserify": "^1.1.2"
     },
-    "staticFiles": {
-        "staticPath": "src/a.out.wasm"
-    },
     "workspaces": [
         "riscv",
         "packages/*"
