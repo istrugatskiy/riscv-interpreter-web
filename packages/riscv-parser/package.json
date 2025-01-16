@@ -3,7 +3,7 @@
     "packageManager": "yarn@4.4.1",
     "private": true,
     "type": "module",
-    "module": "riscv.ts",
+    "module": "src/riscv.ts",
     "license": "CC0-1.0",
     "main": "src/riscv.ts",
     "repository": {

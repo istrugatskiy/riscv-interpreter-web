@@ -14,11 +14,5 @@
 
 .parcel-cache
 dist
-build/
 .cache/
-CMakeFiles
-build.ninja
-cmake_install.cmake
-CMakeCache.txt
-compile_commands.json
 node_modules/

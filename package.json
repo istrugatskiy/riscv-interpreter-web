@@ -4,7 +4,9 @@
     "dependencies": {
         "@babel/runtime": "^7.25.6",
         "@codemirror/language": "^6.10.3",
-        "@codemirror/legacy-modes": "^6.4.1",
+        "@istrugatskiy/riscv-highlighter": "workspace:^",
+        "@istrugatskiy/riscv-parser": "workspace:^",
+        "@istrugatskiy/riscv-vm": "workspace:^",
         "@lezer/highlight": "^1.2.1",
         "@parcel/core": "^2.12.0",
         "@uiw/codemirror-theme-material": "^4.23.3",
