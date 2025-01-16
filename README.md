@@ -1,35 +1,52 @@
 # riscv
 
-## dependencies
+An online 64-bit RISCV interpreter with support for 70+ instructions, syntax highlighting, and error handling.
+This interpreter is used by students in Cornell CS 3410 (starting Fall 2024) to test and develop RISCV assembly.
 
-This project uses a modified version of Peter Engel's interpreter.
-Furthermore, syntax highlighting is a modified version of 'codewars/codemirror-riscv'.
+# TODOs
 
-## note
+-   Add suppport for whitespace in the middle of arguments.
+-   Add support for + in arguments, so that label offsets work.
+-   Forward and backward support in labels.
+-   Add mul extension support.
+-   Better error-handling system for code (we have a lot of debug info generated but we never give it to the user).
+-   Replace syntax & add error handling.
+-   e2e test cases.
+-   Fix up dev environment (i.e. add eslint, prettier, etc into CI/CD)
+-   Memory view
 
-Project is experimental and the code quality / UI / features / may be subpar, I welcome any feedback.
+# setup
 
-## setup
+Setup node.js, corepack, and yarn _berry_ (not yarn classic) (see https://yarnpkg.com/getting-started/install).
+Clone this repo and simply type
 
-yarn install (note that this project uses yarn berry not yarn classic)
-setup the emscripten compiler and ensure that emcc is in your path.
+```
+yarn install
+```
 
-## compiling
+Depending on your editor follow these instructions: https://yarnpkg.com/getting-started/editor-sdks. \\
+You're done! YAY!
 
-Use compile.sh to compile the contents of rv-interpreter-main to output.d.ts, output.js, a.out.wasm
-These three files are auto-generated and should not be touched.
-Run `yarn parcel src/index.html`, this will create a dev server for working with code.
-Note that periodically parcel will get confused and output a nonsensical error or out of date code.
-Deleting the dist and .parcel-cache folders should resolve the issue. Whenever you call compile.sh
-you must stop and re-run parcel. This project uses tailwind for styling.
+# project structure
 
-## production builds
+There are three packages and the main src folder. The src folder is the front-facing UI, and descriptions for the three packages are available in their respective packages/\* folder. This project is a giant RISCV related mono-repo.
 
-Clear the dist folder.
-`yarn parcel build src/index.html`. When running the code you will encounter a weird error.
-Move 'a.out.wasm' to a folder in dist called 'src/a.out.wasm' (this is due to parcel getting confused).
-Now you should be able to serve the code.
+# making changes
 
-## licenses
+Make sure to always use the project's yarn version / local packages.
+In other words, NEVER use npx, npm, or the global typescript, vitest commands.
+Instead if you want to test something always use the `yarn run` prefix.
+For testing use:
 
+```
+yarn test
+```
+
+# licenses / acknowledgements
+
+Inspired (and originally based on) Peter Engel's RISCV interpreter.
+
+IMPORTANT: The syntax highlighter is the only part of this project not public-domain.
+All other packages / parts of my code (minus some yarn stuff) is fully dedicated to the public-domain.
+If you contribute to this project you agree to release your code to the public domain under CC0.
 https://github.com/codewars/codemirror-riscv/blob/main/LICENSE

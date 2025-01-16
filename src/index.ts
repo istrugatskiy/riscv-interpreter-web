@@ -3,8 +3,9 @@ import { basicSetup, EditorView } from 'codemirror';
 import { StreamLanguage } from '@codemirror/language';
 import { materialDark } from '@uiw/codemirror-theme-material';
 
-import MyModule from './output';
-import { riscv } from './syntax';
+import { riscv } from '@istrugatskiy/riscv-highlighter';
+import { VirtualMachine } from '@istrugatskiy/riscv-vm/src/vm';
+import { compile_riscv } from '@istrugatskiy/riscv-parser';
 
 /**
  * Sleeps for a given amount of time the current "thread".
@@ -71,6 +72,7 @@ const append_register_rows = (
         const input_element = document.createElement('input');
         input_element.type = 'text';
         input_element.value = '0x' + init_value.toString(16);
+        // TODO: fix with tailwind classes.
         input_element.className =
             'text-center inline-block max-w-40 bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 m-1 p-0.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
 
@@ -86,13 +88,13 @@ const append_register_rows = (
 
     const create_column = (startIndex: number) => {
         const column = document.createElement('div');
-        column.className = 'flex flex-col'; // Make each column take half the width
+        column.className = 'flex flex-col';
 
         const fragment = document.createDocumentFragment();
         for (let i = startIndex; i < startIndex + 16; i++) {
             if (i < register_mnemonics.length) {
                 fragment.appendChild(
-                    create_table_row(0, register_mnemonics[i])
+                    create_table_row(0, register_mnemonics[i]!)
                 );
             }
         }
@@ -104,17 +106,17 @@ const append_register_rows = (
     const container = document.createElement('div');
     container.className = 'flex justify-evenly flex-wrap';
 
-    const leftColumn = create_column(0);
-    container.appendChild(leftColumn);
+    const left_column = create_column(0);
+    container.appendChild(left_column);
 
-    const rightColumn = create_column(16);
-    container.appendChild(rightColumn);
+    const right_column = create_column(16);
+    container.appendChild(right_column);
 
     // Append the container to the table body
     table_body.appendChild(container);
 };
 
-const log_line = (text: string) => {
+const log_line = (text: string, error_color = false) => {
     const log_view = document.getElementById('logs');
     if (!log_view) throw new Error('No log view');
     // This weird height logic allows the scroll to be fixed.
@@ -124,6 +126,9 @@ const log_line = (text: string) => {
             log_view.parentElement!.offsetHeight;
     const message = document.createElement('p');
     message.textContent = text;
+    if (error_color) {
+        message.classList.add('text-red-700');
+    }
     log_view.append(message);
     if (height) {
         log_view.parentElement!.scrollTop =
@@ -132,27 +137,9 @@ const log_line = (text: string) => {
 };
 let current_radix: 'hex' | 'binary' | 'decimal' = 'hex';
 
-// window.interpreter is the interface used for c wasm to js register communication.
-// There probably is a better way to do this?
-// @ts-ignore
-window.interpreter = {
-    set_register: (reg_id: number, value: bigint) => {
-        if (reg_id == 0) return;
-        const regs = document.querySelectorAll('#registers input');
-        if (!regs) throw new Error('No registers element!!');
-        const input = regs.item(reg_id - 1) as HTMLInputElement;
-        if (input) input.value = bigint_to_string(value, current_radix);
-    },
-};
-
-const Module = MyModule({ print: log_line });
-
-Module.then((mod) => {
-    let code_prepared = false;
-    let stop_requested = false;
-
+window.addEventListener('load', () => {
     // This allows code to be preserved across reloads.
-    const previous_value =
+    const saved_code =
         localStorage.getItem('code') ??
         `# Type your code here...
 addi x1, x0, 2047
@@ -160,7 +147,7 @@ addi x1, x1, 1363
 # x1 = 3410 :)`;
     append_register_rows(registers, document.getElementById('registers'));
     const editor = new EditorView({
-        doc: previous_value,
+        doc: saved_code,
         extensions: [
             basicSetup,
             materialDark,
@@ -171,54 +158,13 @@ addi x1, x1, 1363
         ],
         parent: document.getElementById('editor')!,
     });
-    // This pc prev_pc approach works fine, just users need to press step an extra two times.
-    // I will fix it once I get the chance.
-    let pc = 0;
-    let prev_pc = -1;
 
-    const set_register = mod.cwrap('set_register', 'void', [
-        'bigint',
-        'bigint',
-    ]);
-
-    // This function is for memory activities.
-    // It needs to be fixed up soon.
-    const set_memory = mod.cwrap('set_memory', 'void', ['number', 'bigint']);
-    const prepare_code = mod.cwrap('prepare_code', 'number', []);
-    const run_code = mod.cwrap('run_code', 'number', []);
-    const free_code = mod.cwrap('free_code', 'void', []);
     const get_button = (id: string) =>
         document.getElementById(id) as HTMLButtonElement;
     const b_reset = get_button('reset');
     const b_step = get_button('step');
     const b_run = get_button('run');
     const b_stop = get_button('stop');
-
-    const safe_prepare = () => {
-        if (!code_prepared) {
-            mod.FS.writeFile('input.asm', editor.state.doc.toString());
-            prepare_code();
-            code_prepared = true;
-            pc = 0;
-            prev_pc = -1;
-            document
-                .querySelectorAll('#registers input')
-                .forEach((input, idx) => {
-                    const inp = input as HTMLInputElement;
-                    const val = inp.value;
-                    inp.disabled = true;
-                    set_register(BigInt(idx + 1), BigInt(val));
-                });
-        }
-    };
-
-    const safe_step = () => {
-        safe_prepare();
-        if (pc == prev_pc || pc == -2147483648 || stop_requested) return false;
-        prev_pc = pc;
-        pc = run_code();
-        return true;
-    };
 
     const disable_all_buttons = () => {
         b_run.disabled = true;
@@ -231,31 +177,71 @@ addi x1, x1, 1363
         });
     };
 
-    const handle_run = async () => {
-        // Disable buttons during execution
-        disable_all_buttons();
-        stop_requested = false;
+    // Let's not talk about this code :)
+    let vm: InstanceType<typeof VirtualMachine> | undefined;
 
-        b_stop.disabled = false;
-
-        let can_step_again = true;
-        while (can_step_again) {
-            await sleep(1000 / 64); // Run at approx. 64 Hz
-            can_step_again = safe_step();
+    const safe_step = () => {
+        const step = () => {
+            if (vm === undefined) {
+                try {
+                    const prog = compile_riscv(editor.state.doc.toString());
+                    if (prog.every((el) => 'message' in el)) {
+                        prog.forEach((error) =>
+                            error.message
+                                .split('\n')
+                                .forEach((line) => log_line(line, true))
+                        );
+                        return false;
+                    }
+                    const init_regs = Array.from(
+                        document.querySelectorAll('#registers input')
+                    ).map((input) => {
+                        const inp = input as HTMLInputElement;
+                        const val = inp.value;
+                        inp.disabled = true;
+                        return BigInt(val);
+                    });
+                    vm = new VirtualMachine(prog, init_regs);
+                } catch (exc) {
+                    console.error(exc);
+                    if (exc instanceof Error) {
+                        log_line(
+                            'Unexpected error, please file an issue on GitHub.',
+                            true
+                        );
+                        log_line(exc.message, true);
+                        log_line('For more info see the JS console', true);
+                    }
+                    vm = undefined;
+                    return false;
+                }
+            }
+            try {
+                const [line, line_no, step_again] = vm.step();
+                log_line(`[line ${line_no}]: ${line}`);
+                return step_again;
+            } catch (exc) {
+                console.error(exc);
+                if (exc instanceof Error) {
+                    exc.message
+                        .split('\n')
+                        .forEach((line) => log_line(line, true));
+                }
+                vm = undefined;
+                return false;
+            }
+        };
+        const ret_val = step();
+        if (vm !== undefined) {
+            vm.registers.forEach((value, reg_id) => {
+                if (reg_id == 0) return;
+                const regs = document.querySelectorAll('#registers input');
+                if (!regs) throw new Error('No registers element!!');
+                const input = regs.item(reg_id - 1) as HTMLInputElement;
+                if (input) input.value = bigint_to_string(value, current_radix);
+            });
         }
-        if (stop_requested) {
-            b_reset.disabled = false;
-            b_step.disabled = false;
-            b_run.disabled = false;
-            b_stop.disabled = true;
-            stop_requested = false;
-            return;
-        }
-        free_code();
-        code_prepared = false;
-
-        b_reset.disabled = false;
-        b_stop.disabled = true;
+        return ret_val;
     };
 
     window.addEventListener('click', async (event) => {
@@ -266,13 +252,23 @@ addi x1, x1, 1363
         }
 
         if (target.matches('#run')) {
-            await handle_run();
+            disable_all_buttons();
+            b_stop.disabled = false;
+
+            let can_step_again = true;
+            while (can_step_again && !b_stop.disabled) {
+                await sleep(1000 / 64); // Run at approx. 64 Hz
+                can_step_again = safe_step();
+            }
+            b_reset.disabled = false;
+            if (b_stop.disabled) {
+                b_step.disabled = false;
+                b_run.disabled = false;
+            }
+            b_stop.disabled = true;
         } else if (target.matches('#reset')) {
             // Reset compiler state
-            if (code_prepared) {
-                free_code();
-                code_prepared = false;
-            }
+            vm = undefined;
             b_reset.disabled = true;
             b_step.disabled = false;
             b_run.disabled = false;
@@ -283,9 +279,9 @@ addi x1, x1, 1363
                 inp.disabled = false;
             });
 
-            document.getElementById('logs')?.replaceChildren(); // Clear logs
+            document.getElementById('logs')?.replaceChildren();
         } else if (target.matches('#stop')) {
-            stop_requested = true;
+            b_stop.disabled = true;
         } else if (target.matches('#step')) {
             if (!safe_step()) {
                 disable_all_buttons();

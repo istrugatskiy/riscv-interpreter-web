@@ -1,0 +1,21 @@
+{
+    "name": "@istrugatskiy/riscv-highlighter",
+    "packageManager": "yarn@4.4.1",
+    "private": true,
+    "author": "codewars",
+    "type": "module",
+    "module": "src/syntax.ts",
+    "license": "MIT",
+    "main": "src/syntax.ts",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/istrugatskiy/riscv-interpreter-web.git",
+        "directory": "packages/riscv-highlighter"
+    },
+    "devDependencies": {
+        "vitest": "^2.1.8"
+    },
+    "scripts": {
+        "test": "vitest"
+    }
+}
