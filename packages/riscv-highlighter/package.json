@@ -17,5 +17,8 @@
     },
     "scripts": {
         "test": "vitest"
+    },
+    "dependencies": {
+        "@codemirror/legacy-modes": "^6.4.2"
     }
 }
