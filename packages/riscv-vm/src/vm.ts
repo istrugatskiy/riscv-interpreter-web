@@ -63,7 +63,7 @@ export const VirtualMachine = class {
             return [
                 string_rep,
                 line_no,
-                this.#pc >= 0 && this.#pc <= this.#program.length * 4,
+                this.#pc >= 0 && this.#pc < this.#program.length * 4,
             ];
         } catch (exc) {
             if (!(exc instanceof Error)) {
