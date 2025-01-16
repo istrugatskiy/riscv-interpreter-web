@@ -3,6 +3,16 @@
 An online 64-bit RISCV interpreter with support for 70+ instructions, syntax highlighting, and error handling.
 This interpreter is used by students in Cornell CS 3410 (starting Fall 2024) to test and develop RISCV assembly.
 
+# TODOs
+
+-   Add suppport for whitespace in the middle of arguments.
+-   Add support for + in arguments, so that label offsets work.
+-   Forward and backward support in labels.
+-   Add mul extension support.
+-   Better error-handling system for code (we have a lot of debug info generated but we never give it to the user).
+-   Replace syntax & add error handling.
+-   Fix up dev environment (i.e. add eslint, prettier, etc into CI/CD)
+
 # setup
 
 Setup node.js, corepack, and yarn _berry_ (not yarn classic) (see https://yarnpkg.com/getting-started/install).
