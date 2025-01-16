@@ -22,8 +22,9 @@ export const VirtualMachine = class {
     #pc: bigint = 0n;
     #program: program;
 
-    constructor(program: program) {
+    constructor(program: program, registers: bigint[]) {
         this.#program = program;
+        this.#registers = registers;
     }
 
     /**
@@ -32,35 +33,54 @@ export const VirtualMachine = class {
      * Returns [string_rep, line_no, can_step_again]
      */
     step(): [string, number, boolean] {
-        if (
-            this.#pc % 4n != 0n ||
-            this.#pc < 0 ||
-            this.#pc > Number.MAX_SAFE_INTEGER
-        ) {
-            throw new Error('Illegal pc state');
-        }
-        if ((this.#registers[0] ?? 0n) !== 0n) {
-            throw new Error(
-                `Illegal zero register state: x0 = ${this.#registers[0]}`
+        try {
+            if (
+                this.#pc % 4n != 0n ||
+                this.#pc < 0 ||
+                this.#pc > Number.MAX_SAFE_INTEGER
+            ) {
+                throw new Error('Illegal pc state');
+            }
+            if ((this.#registers[0] ?? 0n) !== 0n) {
+                throw new Error(
+                    `Illegal zero register state: x0 = ${this.#registers[0]}`
+                );
+            }
+            const inst = this.#program[Number(this.#pc / 4n)];
+
+            if (inst === undefined) {
+                return ['', Number(this.#pc), false];
+            }
+            const { string_rep, line_no, instructions } = inst;
+            this.#pc = instructions.reduce(
+                (_, inst) => this.#eval_inst(inst),
+                -1n
             );
-        }
-        const inst = this.#program[Number(this.#pc % 4n)];
+            if (this.#pc % 4n !== 0n) {
+                throw new Error(`Instruction addresss misaligned`);
+            }
 
-        if (inst === undefined) {
-            return ['', Number(this.#pc), false];
+            return [
+                string_rep,
+                line_no,
+                this.#pc >= 0 && this.#pc <= this.#program.length * 4,
+            ];
+        } catch (exc) {
+            if (!(exc instanceof Error)) {
+                console.error(exc);
+                throw new Error(`** (InternalError) **
+--> Something went wrong running your code.
+See the JS console for more info.`);
+            }
+            console.error(exc);
+            throw new Error(`** (RuntimeError) **
+--> ${exc.message}
+See the JS console for more info.`);
         }
-        const { string_rep, line_no, instructions } = inst;
-        this.#pc = instructions.reduce((_, inst) => this.#eval_inst(inst), -1n);
+    }
 
-        if (this.#pc % 4n !== 0n) {
-            throw new Error(`Instruction addresss misaligned exception.`);
-        }
-
-        return [
-            string_rep,
-            line_no,
-            this.#pc < 0 || this.#pc > this.#program.length * 4,
-        ];
+    get registers() {
+        return [...this.#registers];
     }
 
     /**
