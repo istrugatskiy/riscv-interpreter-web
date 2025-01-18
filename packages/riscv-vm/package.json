@@ -5,7 +5,7 @@
     "type": "module",
     "module": "src/vm.ts",
     "license": "CC0-1.0",
-    "main": "src/riscv.ts",
+    "main": "src/vm.ts",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/istrugatskiy/riscv-interpreter-web.git",

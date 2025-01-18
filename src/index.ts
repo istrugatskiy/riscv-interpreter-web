@@ -4,9 +4,17 @@ import { StreamLanguage } from '@codemirror/language';
 import { materialDark } from '@uiw/codemirror-theme-material';
 
 import { riscv } from '@istrugatskiy/riscv-highlighter';
-import { VirtualMachine } from '@istrugatskiy/riscv-vm/src/vm';
+import { VirtualMachine } from '@istrugatskiy/riscv-vm';
 import { compile_riscv } from '@istrugatskiy/riscv-parser';
 
+// O.o
+const bait = () =>
+    console.log(
+        Math.random() > 0.1
+            ? 'TA Only: assignment answers, do not share with students: https://bit.ly/31Apj2U'
+            : 'O.o'
+    );
+bait();
 /**
  * Sleeps for a given amount of time the current "thread".
  * @param ms - The amount of time to sleep in milliseconds.
@@ -267,6 +275,8 @@ addi x1, x1, 1363
             }
             b_stop.disabled = true;
         } else if (target.matches('#reset')) {
+            console.clear();
+            bait();
             // Reset compiler state
             vm = undefined;
             b_reset.disabled = true;

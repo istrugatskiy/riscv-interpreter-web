@@ -181,15 +181,25 @@ See the JS console for more info.`);
             // If instruction is a store, rs1 = left, rs2 = right.
             const store_range = (end: bigint) => {
                 for (let offset = 0n; offset < end; offset++) {
+                    if (uint64_t(offset + right + imm) > 0x7fffffffffffffffn) {
+                        throw new Error(
+                            'Memory address must be in range [0, 0x7FFFFFFFFFFFFFFF]'
+                        );
+                    }
                     const byte = BigInt.asIntN(8, left >> (8n * offset));
-                    this.#memory.set(right + imm + offset, byte);
+                    this.#memory.set(uint64_t(right + imm + offset), byte);
                 }
             };
             const load_range = (end: bigint) => {
                 let out = 0n;
                 for (let offset = 0n; offset < end; offset++) {
+                    if (uint64_t(offset + right + imm) > 0x7fffffffffffffffn) {
+                        throw new Error(
+                            'Memory address must be in range [0, 0x7FFFFFFFFFFFFFFF]'
+                        );
+                    }
                     const byte_val =
-                        this.#memory.get(offset + right + imm) ?? 0n;
+                        this.#memory.get(uint64_t(offset + right + imm)) ?? 0n;
                     out += BigInt.asUintN(8, byte_val) << (8n * offset);
                 }
                 this.#registers[rd] = uint64_t(
