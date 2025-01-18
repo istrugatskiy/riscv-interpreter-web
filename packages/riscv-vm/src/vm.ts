@@ -181,8 +181,8 @@ See the JS console for more info.`);
             // If instruction is a store, rs1 = left, rs2 = right.
             const store_range = (end: bigint) => {
                 for (let offset = 0n; offset < end; offset++) {
-                    const byte = BigInt.asIntN(8, right >> (8n * offset));
-                    this.#memory.set(left + imm + offset, byte);
+                    const byte = BigInt.asIntN(8, left >> (8n * offset));
+                    this.#memory.set(right + imm + offset, byte);
                 }
             };
             const load_range = (end: bigint) => {
@@ -190,7 +190,7 @@ See the JS console for more info.`);
                 for (let offset = 0n; offset < end; offset++) {
                     const byte_val =
                         this.#memory.get(offset + right + imm) ?? 0n;
-                    out += (byte_val & 0xffn) << (8n * offset);
+                    out += BigInt.asUintN(8, byte_val) << (8n * offset);
                 }
                 this.#registers[rd] = uint64_t(
                     BigInt.asIntN(8 * Number(end), out)
