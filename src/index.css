@@ -6,7 +6,7 @@
     @apply row-span-2 rounded-lg;
 }
 #editor {
-    color: rgb(46, 50, 53)
+    color: rgb(46, 50, 53);
 }
 body {
     background-color: rgb(25, 27, 29);
@@ -17,10 +17,14 @@ body {
 .bg-material {
     background-color: rgb(46, 50, 53);
 }
-.cm-editor, #register-tab {
+.cm-editor,
+#register-tab {
     padding: 1.5rem;
     border-radius: 0.5rem;
     height: max(calc(66vh - 70px), 500px);
+}
+.cm-editor {
+    width: max(calc(50vw - 1.5rem), 376px);
 }
 .cm-scroll {
     overflow: auto;
