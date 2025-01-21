@@ -22,6 +22,16 @@ bait();
  */
 export const sleep = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
+/**
+ * Clamps a number between two values.
+ *
+ * @param num The number to clamp.
+ * @param min The minimum value that the number can be.
+ * @param max The maximum value the number can be.
+ * @returns The number clamped between the two specified values.
+ */
+export const clamp = (num: bigint, min: bigint, max: bigint) =>
+    num <= min ? min : num >= max ? max : num;
 
 const registers = [
     'x0 (zero)',
@@ -79,6 +89,7 @@ const append_register_rows = (
         }
         const input_element = document.createElement('input');
         input_element.type = 'text';
+        input_element.id = `reg_${mnemonic}`;
         input_element.value = '0x' + init_value.toString(16);
         // TODO: fix with tailwind classes.
         input_element.className =
@@ -86,6 +97,7 @@ const append_register_rows = (
 
         const label = document.createElement('label');
         label.textContent = `${mnemonic} =`;
+        label.htmlFor = input_element.id;
 
         const row = document.createElement('div');
         row.appendChild(label);
@@ -120,7 +132,6 @@ const append_register_rows = (
     const right_column = create_column(16);
     container.appendChild(right_column);
 
-    // Append the container to the table body
     table_body.appendChild(container);
 };
 
@@ -143,6 +154,43 @@ const log_line = (text: string, error_color = false) => {
             log_view.parentElement!.scrollHeight;
     }
 };
+const update_mem_view = (memory: ReadonlyMap<bigint, bigint> | undefined) => {
+    const offset_el = document.getElementById('offset');
+    if (offset_el !== null && offset_el instanceof HTMLInputElement) {
+        try {
+            const rounded = clamp(
+                BigInt(offset_el.value),
+                0n,
+                0x7fffffffffffffffn
+            );
+            offset_el.value = rounded.toString(10);
+        } catch {
+            offset_el.value = '0';
+        }
+        const val = BigInt(offset_el.value);
+        const mem_values = document.getElementById('mem-values')!;
+        mem_values.replaceChildren();
+        // Much easier than having to do for loop algebra and generating the memory address
+        // offset on the fly (pretty much impossible to screw up).
+        let offset_counter = val;
+        for (let line_offset = 0n; line_offset < 4n; line_offset++) {
+            const mem_row = document.createElement('p');
+            for (let block_offset = 0n; block_offset < 5n; block_offset++) {
+                for (let byte_offset = 0n; byte_offset < 4; byte_offset++) {
+                    mem_row.textContent += BigInt.asUintN(
+                        8,
+                        memory?.get(offset_counter) ?? 0n
+                    )
+                        .toString(16)
+                        .padStart(2, '0');
+                    offset_counter++;
+                }
+                mem_row.textContent += ' ';
+            }
+            mem_values.append(mem_row);
+        }
+    }
+};
 let current_radix: 'hex' | 'binary' | 'decimal' = 'hex';
 
 window.addEventListener('load', () => {
@@ -153,6 +201,7 @@ window.addEventListener('load', () => {
 addi x1, x0, 2047
 addi x1, x1, 1363
 # x1 = 3410 :)`;
+    update_mem_view(undefined);
     append_register_rows(registers, document.getElementById('registers'));
     const editor = new EditorView({
         doc: saved_code,
@@ -201,14 +250,17 @@ addi x1, x1, 1363
                         );
                         return false;
                     }
-                    const init_regs = Array.from(
-                        document.querySelectorAll('#registers input')
-                    ).map((input) => {
-                        const inp = input as HTMLInputElement;
-                        const val = inp.value;
-                        inp.disabled = true;
-                        return BigInt(val);
-                    });
+                    const init_regs = [
+                        0n,
+                        ...Array.from(
+                            document.querySelectorAll('#registers input')
+                        ).map((input) => {
+                            const inp = input as HTMLInputElement;
+                            const val = inp.value;
+                            inp.disabled = true;
+                            return BigInt(val);
+                        }),
+                    ];
                     vm = new VirtualMachine(prog, init_regs);
                 } catch (exc) {
                     console.error(exc);
@@ -248,6 +300,7 @@ addi x1, x1, 1363
                 const input = regs.item(reg_id - 1) as HTMLInputElement;
                 if (input) input.value = bigint_to_string(value, current_radix);
             });
+            update_mem_view(vm.memory);
         }
         return ret_val;
     };
@@ -279,6 +332,7 @@ addi x1, x1, 1363
             bait();
             // Reset compiler state
             vm = undefined;
+            update_mem_view(undefined);
             b_reset.disabled = true;
             b_step.disabled = false;
             b_run.disabled = false;
@@ -302,10 +356,13 @@ addi x1, x1, 1363
 
     window.addEventListener('change', async (event) => {
         const target = event.target;
-        if (!target || !(target instanceof HTMLSelectElement)) {
+        if (!target || !(target instanceof HTMLElement)) {
             return;
         }
         if (target.matches('#view_as')) {
+            if (!(target instanceof HTMLSelectElement)) {
+                return;
+            }
             const new_radix = target.value as 'hex' | 'binary' | 'decimal';
             current_radix = new_radix;
             for (const register of document.querySelectorAll(
@@ -325,6 +382,8 @@ addi x1, x1, 1363
                     }
                 }
             }
+        } else if (target.matches('#offset')) {
+            update_mem_view(vm?.memory);
         }
     });
 });

@@ -21,7 +21,7 @@ body {
 #register-tab {
     padding: 1.5rem;
     border-radius: 0.5rem;
-    height: max(calc(66vh - 70px), 500px);
+    height: max(calc(66vh - 70px), 600px);
 }
 .cm-editor {
     width: max(calc(50vw - 1.5rem), 376px);

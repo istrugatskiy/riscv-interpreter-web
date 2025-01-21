@@ -70,8 +70,20 @@
                     </div>
                     <div id="registers"></div>
                 </div>
-                <div class="row-span-1 bg-gray-600 p-6 rounded-lg">
-                    Memory View coming soon sorry :(
+                <div
+                    class="row-span-1 bg-material p-6 rounded-lg flex flex-col items-center font-mono"
+                >
+                    <h1 class="text-xl text-left w-full">Memory View</h1>
+                    <div>
+                        <label for="offset">Memory Offset:</label>
+                        <input
+                            id="offset"
+                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                            type="number"
+                            value="0"
+                        />
+                    </div>
+                    <div id="mem-values"></div>
                 </div>
             </div>
         </main>

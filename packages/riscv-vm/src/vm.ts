@@ -83,6 +83,10 @@ See the JS console for more info.`);
         return [...this.#registers];
     }
 
+    get memory() {
+        return <ReadonlyMap<bigint, bigint>>this.#memory;
+    }
+
     /**
      * Evaluate instruction and return new pc.
      */
