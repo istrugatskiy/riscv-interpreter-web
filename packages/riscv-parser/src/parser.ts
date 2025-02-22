@@ -13,7 +13,7 @@ export type riscv_ir = {
 
 // Thrown when a line does not contain one valid statement.
 // A valid line is defined as follows:
-// named_literal = a-z, A-Z, ., 0-9, _ (note no commas in named_literals, can't start with digit)
+// named_literal = a-z, A-Z, ., 0-9, _, +,- (note no commas in named_literals, can't start with digit)
 // argument = [preceeding_spaces][named_literal symbols as well as open and close parens no spaces in the middle, may start with digit][ending_spaces]
 // label = named_literal:
 // macro_expr = named_literal[at least one space][zero or more arguments separated by commas]
@@ -43,7 +43,7 @@ export const parse_file = (source: string): riscv_ir | compile_error[] => {
         !((normalized.at(0) ?? '0') >= '0' && (normalized.at(0) ?? '0') <= '9');
     const instr_pred = ({ normalized }: { normalized: string }) =>
         // Sus half GPT regex...
-        /^[a-zA-Z_][a-zA-Z0-9_.]*(\s+((\s*[0-9a-zA-Z_.()-]+\s*)(,\s*[0-9a-zA-Z_.()-]+\s*)*)?)?$/.test(
+        /^[a-zA-Z_][a-zA-Z0-9_.]*(\s+((\s*[0-9a-zA-Z_.()+\s-]+\s*)(,\s*[0-9a-zA-Z_.()+\s-]+\s*)*)?)?$/.test(
             normalized
         );
     const invalid_lines = lines.filter(
