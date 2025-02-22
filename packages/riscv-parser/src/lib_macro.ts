@@ -146,9 +146,22 @@ export const immediate_or_label = (
     // 12f, 12 instructions forward (pc = pc + 12 * 4)
     // Also add +, - offsets, so label + 12, or label - 10...
     if (imm_label === undefined) return undefined;
+    imm_label = imm_label.replaceAll(' ', '');
+    let added_offset = 0n;
+    const [label_str, sign, offset] = imm_label.split(/(\+|\-)/);
+    if (label_str !== undefined && sign !== undefined && offset !== undefined) {
+        added_offset = immediate(offset, 0n, 2n ** 64n - 1n) ?? 0n;
+        if (sign === '-') {
+            added_offset *= -1n;
+        }
+        imm_label = label_str;
+    }
+    if (added_offset % 4n !== 0n) {
+        return undefined;
+    }
     const label = label_table.get(imm_label);
     if (label !== undefined) {
-        return (BigInt(label) - 1n) * 4n;
+        return (BigInt(label) - 1n) * 4n + added_offset;
     }
     const imm = immediate(imm_label, min, max);
     if ((imm ?? 0n) % 4n !== 0n) {
@@ -163,7 +176,7 @@ export const imm_register = (
     max: bigint
 ): [bigint, number] | undefined => {
     if (imm_register === undefined) return undefined;
-    const [left, ...right] = imm_register.split('(');
+    const [left, ...right] = imm_register.replaceAll(' ', '').split('(');
     if (left === undefined || right.length !== 1) {
         return undefined;
     }

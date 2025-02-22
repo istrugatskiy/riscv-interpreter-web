@@ -88,14 +88,14 @@ test('Detects invalid lines', () => {
         parse_file(`main:
     add x1, x2, x3
     invalid_instruction # This should work fine, the parser doesn't know which macros exist.
-    sub x4 x5 x6 # Missing commas
+    !skibidi sigma rizz
   `)
     ).toStrictEqual([
         {
             message: `** (CompileError) **
 Irreducable expression @ line 4!
-Expression: sub x4 x5 x6 # Missing commas
-Normalized as: sub x4 x5 x6
+Expression: !skibidi sigma rizz
+Normalized as: !skibidi sigma rizz
 Is not empty but does not match label_expr | macro_expr`,
             line: 4,
         },
