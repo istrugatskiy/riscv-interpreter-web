@@ -8,7 +8,7 @@ This interpreter is used by students in Cornell CS 3410 (starting Fall 2024) to 
 -   ~~Add suppport for whitespace in the middle of arguments.~~
 -   ~~Add support for + in arguments, so that label offsets work.~~
 -   Forward and backward support in labels.
--   Add mul extension support.
+-   ~~Add mul extension support.~~
 -   Better error-handling system for code (we have a lot of debug info generated but we never give it to the user).
 -   Replace syntax & add error handling.
 -   e2e test cases.

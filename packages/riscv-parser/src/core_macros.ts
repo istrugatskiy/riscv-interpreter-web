@@ -105,6 +105,32 @@ const J_TYPE = [
     ]),
 ];
 
+export const M_NAMES = [
+    'mul',
+    'mulh',
+    'mulhu',
+    'mulhsu',
+    'mulw',
+    'div',
+    'divu',
+    'rem',
+    'remu',
+    'divw',
+    'divuw',
+    'remw',
+    'remuw',
+] as const;
+const M_TYPE = M_NAMES.map((name) =>
+    def_macro(name, 3, reg_reg_reg, ([rd, rs1, rs2]) => [
+        {
+            name,
+            rd,
+            rs1,
+            rs2,
+        },
+    ])
+);
+
 export const CORE_MACROS = [
     R_TYPE,
     I_TYPE,
@@ -112,6 +138,7 @@ export const CORE_MACROS = [
     U_TYPE,
     B_TYPE,
     J_TYPE,
+    M_TYPE,
 ].flat();
 
 export const core = bytecode_of_string.bind(null, CORE_MACROS);

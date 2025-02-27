@@ -17,6 +17,7 @@ import {
     B_NAMES,
     CORE_MACROS,
     I_NAMES,
+    M_NAMES,
     MEM_NAMES,
     R_NAMES,
     U_NAMES,
@@ -52,3 +53,5 @@ export const is_b_type = (inst: instruction): inst is b_type =>
     belongs_to_array(inst.name, B_NAMES);
 export const is_j_type = (inst: instruction): inst is j_type =>
     belongs_to_array(inst.name, ['jal', 'jalr']);
+export const is_m_type = (inst: instruction): inst is m_type =>
+    belongs_to_array(inst.name, M_NAMES);

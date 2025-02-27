@@ -9,12 +9,11 @@ type program = {
     line_no: number;
 }[];
 
-// TODO: figure out mul and div extension.
 // These pseudo instructions are also supported:
 // BGT, BGTU, BLE, BLEU, BEQZ, BNEZ,
 // BLEZ, BGEZ, BLTZ, BGTZ, MV, NOT, NEG, NEGW,
 // SEXT.W, SEQZ, SNEZ, SLTZ, SGTZ
-// J, JR, RET
+// J, JR, RET, LI, NOP
 type r_names =
     | 'add'
     | 'sub'
@@ -86,7 +85,7 @@ type mem_type = {
  */
 type u_type = { name: 'lui' | 'auipc'; rd: number; imm: bigint };
 
-type b_name = 'beq' | 'bne' | 'blt' | 'bltu' | 'bge' | 'bgeu';
+type b_names = 'beq' | 'bne' | 'blt' | 'bltu' | 'bge' | 'bgeu';
 /**
  * Represented as: [name: b_name] [rs1: register], [rs2: register], [imm: (int64_t)imm > 0 & imm is divisible by 4]
  *
@@ -96,7 +95,7 @@ type b_name = 'beq' | 'bne' | 'blt' | 'bltu' | 'bge' | 'bgeu';
  * For example:
  *  - beq x1, x2, label_name
  */
-type b_type = { name: b_name; rs1: number; rs2: number; imm: bigint };
+type b_type = { name: b_names; rs1: number; rs2: number; imm: bigint };
 
 /**
  * Represented as: jal rd, imm (or) jalr rd, rs1, imm
@@ -109,4 +108,34 @@ type j_type =
     | { name: 'jal'; rd: number; imm: bigint }
     | { name: 'jalr'; rd: number; rs1: number; imm: bigint };
 
-type instruction = r_type | i_type | mem_type | u_type | b_type | j_type;
+type m_names =
+    | 'mul'
+    | 'mulh'
+    | 'mulhu'
+    | 'mulhsu'
+    | 'mulw'
+    | 'div'
+    | 'divu'
+    | 'rem'
+    | 'remu'
+    | 'divw'
+    | 'divuw'
+    | 'remw'
+    | 'remuw';
+/**
+ * Represented as: [name: m_name] [rd: register], [rs1: register], [rs2: register]
+ *
+ * For example:
+ *  - mul a0, a1, a0
+ *  - mulh t0, a1, a0
+ */
+type m_type = { name: m_names; rd: number; rs1: number; rs2: number };
+
+type instruction =
+    | r_type
+    | i_type
+    | mem_type
+    | u_type
+    | b_type
+    | j_type
+    | m_type;

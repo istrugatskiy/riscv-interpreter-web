@@ -1,6 +1,6 @@
 import { def_macro, register } from './lib_macro';
 import { coret } from './core_macros';
-import { label, reg_label, reg_reg, reg_reg_label } from './guards';
+import { label, reg_imm, reg_label, reg_reg, reg_reg_label } from './guards';
 
 export const PSEUDO = [
     def_macro(
@@ -108,4 +108,11 @@ export const PSEUDO = [
         ([rs]) => register(rs),
         (rs) => coret`jalr ra, ${rs}, 0`
     ),
+    def_macro(
+        'nop',
+        0,
+        () => 0,
+        () => coret`addi x0, x0, 0`
+    ),
+    def_macro('li', 2, reg_imm, ([rd, imm]) => coret`addi ${rd}, zero, ${imm}`),
 ];

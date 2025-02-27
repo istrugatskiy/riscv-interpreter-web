@@ -2,6 +2,7 @@ import {
     is_b_type,
     is_i_type,
     is_j_type,
+    is_m_type,
     is_mem_type,
     is_r_type,
     is_u_type,
@@ -91,13 +92,16 @@ See the JS console for more info.`);
      * Evaluate instruction and return new pc.
      */
     #eval_inst(inst: instruction): bigint {
-        if (is_r_type(inst) || is_i_type(inst)) {
-            let { name, rd, rs1 } = inst;
+        if (is_r_type(inst) || is_i_type(inst) || is_m_type(inst)) {
+            // Yes, this is technically incorrect, but it makes my life easier...
+            let { name, rd, rs1 } = inst as m_type | r_type;
             if (rd !== 0) {
                 const left = this.#registers[rs1],
                     right =
                         'rs2' in inst ? this.#registers[inst.rs2] : inst.imm;
-                name = name.replace('i', '') as r_names;
+                name = (is_i_type(inst) ? name.replace('i', '') : name) as
+                    | r_names
+                    | m_names;
                 if (left === undefined || right === undefined) {
                     throw new Error('Registers out of range');
                 }
@@ -171,6 +175,62 @@ See the JS console for more info.`);
                                     uint32_t(right & 0x1fn)
                             )
                         )
+                    );
+                } else if (name === 'mul') {
+                    this.#registers[rd] = uint64_t(left * right);
+                } else if (name === 'mulh') {
+                    this.#registers[rd] = uint64_t(
+                        (int64_t(left) * int64_t(right)) >> 64n
+                    );
+                } else if (name === 'mulhu') {
+                    this.#registers[rd] = uint64_t((left * right) >> 64n);
+                } else if (name === 'mulhsu') {
+                    this.#registers[rd] = uint64_t(
+                        (int64_t(left) * right) >> 64n
+                    );
+                } else if (name === 'mulw') {
+                    this.#registers[rd] = uint64_t(
+                        int32_t(uint32_t(left) * uint32_t(right))
+                    );
+                } else if (name === 'div') {
+                    this.#registers[rd] = uint64_t(
+                        right === 0n ? -1n : int64_t(left) / int64_t(right)
+                    );
+                } else if (name === 'divu') {
+                    this.#registers[rd] = uint64_t(
+                        right === 0n ? -1n : left / right
+                    );
+                } else if (name === 'rem') {
+                    this.#registers[rd] = uint64_t(
+                        right === 0n ? -1n : int64_t(left) % int64_t(right)
+                    );
+                } else if (name === 'remu') {
+                    this.#registers[rd] = uint64_t(
+                        right === 0n ? -1n : left % right
+                    );
+                } else if (name === 'divw') {
+                    this.#registers[rd] = uint64_t(
+                        right === 0n
+                            ? -1n
+                            : int32_t(int32_t(left) / int32_t(right))
+                    );
+                } else if (name === 'divuw') {
+                    this.#registers[rd] = uint64_t(
+                        right === 0n
+                            ? -1n
+                            : int32_t(uint32_t(left) / uint32_t(right))
+                    );
+                } else if (name === 'remw') {
+                    this.#registers[rd] = uint64_t(
+                        right === 0n
+                            ? -1n
+                            : int32_t(int32_t(left) % int32_t(right))
+                    );
+                } else if (name === 'remuw') {
+                    this.#registers[rd] = uint64_t(
+                        right === 0n
+                            ? -1n
+                            : int32_t(uint32_t(left) % uint32_t(right))
                     );
                 }
             }
