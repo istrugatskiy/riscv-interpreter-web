@@ -99,6 +99,6 @@ export const string_of_macro = ({
     string_rep,
     code_line,
 }: macro_epxr) =>
-    `${name}/${args.length} ${args.join(
+    `${name}/${args.length} [${args.join(
         ', '
-    )} from ${string_rep} @@ line ${code_line}`;
+    )}] from ${string_rep} @@ line ${code_line}`;
