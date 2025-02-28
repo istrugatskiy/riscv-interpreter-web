@@ -92,7 +92,7 @@ export const PSEUDO = [
     def_macro(
         'ret',
         0,
-        () => void 0,
+        () => true,
         () => coret`jalr zero, ra, 0`
     ),
     // Additional jal/jalr variants:
@@ -111,7 +111,7 @@ export const PSEUDO = [
     def_macro(
         'nop',
         0,
-        () => 0,
+        () => true,
         () => coret`addi x0, x0, 0`
     ),
     def_macro('li', 2, reg_imm, ([rd, imm]) => coret`addi ${rd}, zero, ${imm}`),
