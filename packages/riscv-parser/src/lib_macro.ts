@@ -93,7 +93,9 @@ export const valid_list = <T extends unknown[]>(
 ): undefined | { [P in keyof T]: T[P] & {} } =>
     list.includes(undefined) ? undefined : (list as any);
 
-export const register = (reg: string | undefined): IntRange<0, 32> | undefined =>
+export const register = (
+    reg: string | undefined
+): IntRange<0, 32> | undefined =>
     reg === undefined ? undefined : abi_map.get(reg.toLowerCase());
 
 export const immediate = (
@@ -174,7 +176,7 @@ export const imm_register = (
     imm_register: string | undefined,
     min: bigint,
     max: bigint
-): [bigint, number] | undefined => {
+): [bigint, Register] | undefined => {
     if (imm_register === undefined) return undefined;
     const [left, ...right] = imm_register.replaceAll(' ', '').split('(');
     if (left === undefined || right.length !== 1) {

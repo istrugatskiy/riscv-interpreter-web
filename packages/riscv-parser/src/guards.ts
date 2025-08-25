@@ -14,27 +14,34 @@ export const label = (
     label_table: Map<string, number>
 ) => immediate_or_label(imm, 0n, 2n ** 63n - 1n, label_table);
 
-export const reg_label: Guard<[number, bigint]> = ([rs, lab], label_table) =>
+export const reg_label: Guard<[Register, bigint]> = ([rs, lab], label_table) =>
     valid_list([register(rs), label(lab, label_table)] as const);
 
-export const reg_reg_label: Guard<[number, number, bigint]> = (
+export const reg_reg_label: Guard<[Register, Register, bigint]> = (
     [rd, rs1, lab],
     label_table
 ) =>
     valid_list([register(rd), register(rs1), label(lab, label_table)] as const);
 
-export const reg_imm: Guard<[number, bigint]> = ([rd, imm]) =>
+export const reg_imm: Guard<[Register, bigint]> = ([rd, imm]) =>
     valid_list([register(rd), immediate(imm, -2048n, 2047n)] as const);
 
-export const reg_reg_imm: Guard<[number, number, bigint]> = ([rd, rs1, imm]) =>
+export const reg_reg_imm: Guard<[Register, Register, bigint]> = ([
+    rd,
+    rs1,
+    imm,
+]) =>
     valid_list([
         register(rd),
         register(rs1),
         immediate(imm, -2048n, 2047n),
     ] as const);
 
-export const reg_reg: Guard<[number, number]> = ([rd, rs1]) =>
+export const reg_reg: Guard<[Register, Register]> = ([rd, rs1]) =>
     valid_list([register(rd), register(rs1)]);
 
-export const reg_reg_reg: Guard<[number, number, number]> = ([rd, rs1, rs2]) =>
-    valid_list([register(rd), register(rs1), register(rs2)] as const);
+export const reg_reg_reg: Guard<[Register, Register, Register]> = ([
+    rd,
+    rs1,
+    rs2,
+]) => valid_list([register(rd), register(rs1), register(rs2)] as const);
