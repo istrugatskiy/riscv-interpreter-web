@@ -1,4 +1,7 @@
-const defs = Array.from({ length: 32 }, (_, idx) => `x${idx}`).reduce(
+const defs = Array.from(
+    { length: 32 },
+    (_, idx) => `x${idx.toString()}`
+).reduce(
     (map, val, idx) => map.set(val, idx),
     new Map<string, number>()
 ) as ReadonlyMap<string, number>;
@@ -41,5 +44,5 @@ const abis = [
 ) as ReadonlyMap<string, number>;
 export const abi_map = new Map([...abis, ...defs]).set('fp', 8) as ReadonlyMap<
     string,
-    number
+    IntRange<0, 32>
 >;

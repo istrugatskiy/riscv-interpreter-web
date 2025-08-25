@@ -8,7 +8,7 @@ import {
     valid_list,
 } from './lib_macro';
 
-export const R_NAMES = [
+export const r_names = [
     'and',
     'add',
     'sub',
@@ -25,7 +25,7 @@ export const R_NAMES = [
     'subw',
     'sraw',
 ] as const;
-const R_TYPE = R_NAMES.map((name) =>
+const r_type = r_names.map((name) =>
     def_macro(name, 3, reg_reg_reg, ([rd, rs1, rs2]) => [
         {
             name,
@@ -36,7 +36,7 @@ const R_TYPE = R_NAMES.map((name) =>
     ])
 );
 
-export const I_NAMES = [
+export const i_names = [
     'addi',
     'andi',
     'ori',
@@ -51,13 +51,13 @@ export const I_NAMES = [
     'srai',
     'sraiw',
 ] as const;
-const I_TYPE = I_NAMES.map((name) =>
+const i_type = i_names.map((name) =>
     def_macro(name, 3, reg_reg_imm, ([rd, rs1, imm]) => [
         { name, rd, rs1, imm },
     ])
 );
 
-export const MEM_NAMES = [
+export const mem_names = [
     'lb',
     'lh',
     'lw',
@@ -67,7 +67,7 @@ export const MEM_NAMES = [
     'sw',
     'sd',
 ] as const;
-const MEM_TYPE = MEM_NAMES.map((name) =>
+const mem_type = mem_names.map((name) =>
     def_macro(
         name,
         2,
@@ -80,8 +80,8 @@ const MEM_TYPE = MEM_NAMES.map((name) =>
     )
 );
 
-export const U_NAMES = ['lui', 'auipc'] as const;
-const U_TYPE = U_NAMES.map((name) =>
+export const u_names = ['lui', 'auipc'] as const;
+const u_type = u_names.map((name) =>
     def_macro(
         name,
         2,
@@ -91,21 +91,21 @@ const U_TYPE = U_NAMES.map((name) =>
     )
 );
 
-export const B_NAMES = ['beq', 'bne', 'blt', 'bltu', 'bge', 'bgeu'] as const;
-const B_TYPE = B_NAMES.map((name) =>
+export const b_names = ['beq', 'bne', 'blt', 'bltu', 'bge', 'bgeu'] as const;
+const b_type = b_names.map((name) =>
     def_macro(name, 3, reg_reg_label, ([rs1, rs2, imm]) => [
         { name, rs1, rs2, imm },
     ])
 );
 
-const J_TYPE = [
+const j_type = [
     def_macro('jal', 2, reg_label, ([rd, imm]) => [{ name: 'jal', rd, imm }]),
     def_macro('jalr', 3, reg_reg_label, ([rd, rs1, imm]) => [
         { name: 'jalr', rd, rs1, imm },
     ]),
 ];
 
-export const M_NAMES = [
+export const m_names = [
     'mul',
     'mulh',
     'mulhu',
@@ -120,7 +120,7 @@ export const M_NAMES = [
     'remw',
     'remuw',
 ] as const;
-const M_TYPE = M_NAMES.map((name) =>
+const m_type = m_names.map((name) =>
     def_macro(name, 3, reg_reg_reg, ([rd, rs1, rs2]) => [
         {
             name,
@@ -131,24 +131,24 @@ const M_TYPE = M_NAMES.map((name) =>
     ])
 );
 
-export const CORE_MACROS = [
-    R_TYPE,
-    I_TYPE,
-    MEM_TYPE,
-    U_TYPE,
-    B_TYPE,
-    J_TYPE,
-    M_TYPE,
+export const core_macros = [
+    r_type,
+    i_type,
+    mem_type,
+    u_type,
+    b_type,
+    j_type,
+    m_type,
 ].flat();
 
-export const core = bytecode_of_string.bind(null, CORE_MACROS);
+export const core = bytecode_of_string.bind(undefined, core_macros);
 
 // Oh wow, its template tag literal o'clock. :)))))))))
 // Thx stackoverflow: https://stackoverflow.com/questions/68152638/what-is-the-default-tag-function-for-template-literals
-export const coret = <TValues extends unknown[]>(
+export const coret = (
     parts: TemplateStringsArray,
-    ...values: TValues
-): instruction[] => {
+    ...values: unknown[]
+): Instruction[] => {
     const prog = core(
         parts
             .flatMap((part, i) =>
@@ -157,7 +157,7 @@ export const coret = <TValues extends unknown[]>(
                           part,
                           String(
                               Number.isInteger(values[i])
-                                  ? `x${values[i]}`
+                                  ? `x${(values[i] as number).toString()}`
                                   : values[i]
                           ),
                       ]

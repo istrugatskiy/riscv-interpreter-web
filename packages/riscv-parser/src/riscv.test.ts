@@ -1,11 +1,11 @@
 // Thanks chat gpt 4o :)
 import { describe, it, expect } from 'vitest';
-import { compile_error, compile_riscv } from './riscv';
+import { CompileError, compile_riscv } from './riscv';
 
-const is_error = (result: program | compile_error[]) =>
+const is_error = (result: Program | CompileError[]) =>
     result.every((entry) => 'message' in entry);
 
-const flatten_bytecode = (program: program) =>
+const flatten_bytecode = (program: Program) =>
     program.flatMap(({ instructions }) => instructions);
 
 describe('compile_riscv', () => {

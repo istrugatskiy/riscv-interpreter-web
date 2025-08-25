@@ -5,15 +5,15 @@ This interpreter is used by students in Cornell CS 3410 (starting Fall 2024) to 
 
 # TODOs
 
--   ~~Add suppport for whitespace in the middle of arguments.~~
--   ~~Add support for + in arguments, so that label offsets work.~~
--   Forward and backward support in labels.
--   ~~Add mul extension support.~~
--   Better error-handling system for code (we have a lot of debug info generated but we never give it to the user).
--   Replace syntax & add error handling.
--   e2e test cases.
--   Fix up dev environment (i.e. add eslint, prettier, etc into CI/CD)
--   Memory view
+- ~~Add suppport for whitespace in the middle of arguments.~~
+- ~~Add support for + in arguments, so that label offsets work.~~
+- Forward and backward support in labels.
+- ~~Add mul extension support.~~
+- Better error-handling system for code (we have a lot of debug info generated but we never give it to the user).
+- Replace syntax & add error handling.
+- e2e test cases.
+- Fix up dev environment (i.e. add eslint, prettier, etc into CI/CD)
+- Memory view
 
 # setup
 
@@ -24,7 +24,7 @@ Clone this repo and simply type
 yarn install
 ```
 
-Depending on your editor follow these instructions: https://yarnpkg.com/getting-started/editor-sdks. \\
+Depending on your editor follow these instructions: https://yarnpkg.com/getting-started/editor-sdks. \
 You're done! YAY!
 
 # project structure
@@ -46,7 +46,5 @@ yarn test
 
 Inspired (and originally based on) Peter Engel's RISCV interpreter.
 
-IMPORTANT: The syntax highlighter is the only part of this project not public-domain.
-All other packages / parts of my code (minus some yarn stuff) is fully dedicated to the public-domain.
+IMPORTANT: All parts of my code (minus some yarn stuff / third-party packages) is fully dedicated to the public-domain.
 If you contribute to this project you agree to release your code to the public domain under CC0.
-https://github.com/codewars/codemirror-riscv/blob/main/LICENSE

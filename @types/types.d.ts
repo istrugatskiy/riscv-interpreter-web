@@ -1,20 +1,47 @@
 /**
+ * The hope is to deprecate this file and global types as whole, except for fixed length arrays,
+ * and other global useful utilities.
+ */
+type Tuple<T, N extends number> = N extends N
+    ? number extends N
+        ? T[]
+        : TupleOf<T, N, []>
+    : never;
+type TupleOf<T, N extends number, R extends unknown[]> = R['length'] extends N
+    ? R
+    : TupleOf<T, N, [T, ...R]>;
+
+type Enumerate<
+    N extends number,
+    Acc extends number[] = []
+> = Acc['length'] extends N
+    ? Acc[number]
+    : Enumerate<N, [...Acc, Acc['length']]>;
+
+type IntRange<F extends number, T extends number> = Exclude<
+    Enumerate<T>,
+    Enumerate<F>
+>;
+
+/**
  * A program consists of instructions.
  * Comments become part of the nearest instruction and are added to it's string representation.
  * Instructions are newline separated.
  */
-type program = {
-    instructions: instruction[];
+type Program = {
+    instructions: Instruction[];
     string_rep: string;
     line_no: number;
 }[];
+
+type Register = IntRange<0, 32>;
 
 // These pseudo instructions are also supported:
 // BGT, BGTU, BLE, BLEU, BEQZ, BNEZ,
 // BLEZ, BGEZ, BLTZ, BGTZ, MV, NOT, NEG, NEGW,
 // SEXT.W, SEQZ, SNEZ, SLTZ, SGTZ
 // J, JR, RET, LI, NOP
-type r_names =
+type RegisterName =
     | 'add'
     | 'sub'
     | 'and'
@@ -37,9 +64,14 @@ type r_names =
  *  - add a0, zero, a1 # a0 = 0 + a1
  *  - and x0, x1, x2 # This is a no-op, since x0 = 0.
  */
-type r_type = { name: r_names; rd: number; rs1: number; rs2: number };
+type RegisterType = {
+    name: RegisterName;
+    rd: Register;
+    rs1: Register;
+    rs2: Register;
+};
 
-type i_names =
+type ImmediateName =
     | 'addi'
     | 'andi'
     | 'ori'
@@ -60,9 +92,14 @@ type i_names =
  *  - addi a0, a1, 10 # a0 = a1 + 10
  *  - andi x12, x25, 0xFF # x12 = x25 & 0xFF
  */
-type i_type = { name: i_names; rd: number; rs1: number; imm: bigint };
+type ImmediateType = {
+    name: ImmediateName;
+    rd: Register;
+    rs1: Register;
+    imm: bigint;
+};
 
-type mem_names = 'lb' | 'lh' | 'lw' | 'ld' | 'sb' | 'sh' | 'sw' | 'sd';
+type MemoryName = 'lb' | 'lh' | 'lw' | 'ld' | 'sb' | 'sh' | 'sw' | 'sd';
 /**
  * Represented as: [name: mem_names] [rd: register], [imm: -2048 <= imm <= 2047]([rs1: register])
  *
@@ -70,10 +107,10 @@ type mem_names = 'lb' | 'lh' | 'lw' | 'ld' | 'sb' | 'sh' | 'sw' | 'sd';
  *  - lw x1, 0(x2) # Load word at memory address x2 with 0 byte offset.
  *  - sb a1, 7(a3) # Store byte at memory address a3 with 7 byte offset.
  */
-type mem_type = {
-    name: mem_names;
-    rd: number;
-    rs1: number;
+type MemoryType = {
+    name: MemoryName;
+    rd: Register;
+    rs1: Register;
     imm: bigint;
 };
 
@@ -83,9 +120,13 @@ type mem_type = {
  * For example:
  *  - lui x1, 0x3410 # Loads 0x3410 into the upper 20 bits of x1.
  */
-type u_type = { name: 'lui' | 'auipc'; rd: number; imm: bigint };
+type UpperImmediateType = {
+    name: 'lui' | 'auipc';
+    rd: Register;
+    imm: bigint;
+};
 
-type b_names = 'beq' | 'bne' | 'blt' | 'bltu' | 'bge' | 'bgeu';
+type BranchName = 'beq' | 'bne' | 'blt' | 'bltu' | 'bge' | 'bgeu';
 /**
  * Represented as: [name: b_name] [rs1: register], [rs2: register], [imm: (int64_t)imm > 0 & imm is divisible by 4]
  *
@@ -95,7 +136,12 @@ type b_names = 'beq' | 'bne' | 'blt' | 'bltu' | 'bge' | 'bgeu';
  * For example:
  *  - beq x1, x2, label_name
  */
-type b_type = { name: b_names; rs1: number; rs2: number; imm: bigint };
+type BranchType = {
+    name: BranchName;
+    rs1: Register;
+    rs2: Register;
+    imm: bigint;
+};
 
 /**
  * Represented as: jal rd, imm (or) jalr rd, rs1, imm
@@ -104,11 +150,11 @@ type b_type = { name: b_names; rs1: number; rs2: number; imm: bigint };
  *  - jal x1, label
  *  - jalr x2, x3, label
  */
-type j_type =
-    | { name: 'jal'; rd: number; imm: bigint }
-    | { name: 'jalr'; rd: number; rs1: number; imm: bigint };
+type JumpType =
+    | { name: 'jal'; rd: Register; imm: bigint }
+    | { name: 'jalr'; rd: Register; rs1: Register; imm: bigint };
 
-type m_names =
+type MultiplicationName =
     | 'mul'
     | 'mulh'
     | 'mulhu'
@@ -129,13 +175,18 @@ type m_names =
  *  - mul a0, a1, a0
  *  - mulh t0, a1, a0
  */
-type m_type = { name: m_names; rd: number; rs1: number; rs2: number };
+type MultiplicationType = {
+    name: MultiplicationName;
+    rd: Register;
+    rs1: Register;
+    rs2: Register;
+};
 
-type instruction =
-    | r_type
-    | i_type
-    | mem_type
-    | u_type
-    | b_type
-    | j_type
-    | m_type;
+type Instruction =
+    | RegisterType
+    | ImmediateType
+    | MemoryType
+    | UpperImmediateType
+    | BranchType
+    | JumpType
+    | MultiplicationType;

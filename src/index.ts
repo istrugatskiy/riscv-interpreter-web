@@ -1,20 +1,11 @@
 // Some of this code is stolen from my older projects...
 import { basicSetup, EditorView } from 'codemirror';
-import { StreamLanguage } from '@codemirror/language';
 import { materialDark } from '@uiw/codemirror-theme-material';
 
 import { riscv } from '@istrugatskiy/riscv-highlighter';
 import { VirtualMachine } from '@istrugatskiy/riscv-vm';
 import { compile_riscv } from '@istrugatskiy/riscv-parser';
-
-// O.o
-const bait = () =>
-    console.log(
-        Math.random() > 0.1
-            ? 'TA Only: assignment answers, do not share with students: https://bit.ly/31Apj2U'
-            : 'O.o'
-    );
-bait();
+import { log_error, log_msg } from './log_manager';
 /**
  * Sleeps for a given amount of time the current "thread".
  * @param ms - The amount of time to sleep in milliseconds.
@@ -22,6 +13,7 @@ bait();
  */
 export const sleep = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
+
 /**
  * Clamps a number between two values.
  *
@@ -66,7 +58,7 @@ const registers = [
     'x29 (t4)',
     'x30 (t5)',
     'x31 (t6)',
-];
+] as const;
 
 const bigint_to_string = (num: bigint, radix: 'hex' | 'binary' | 'decimal') => {
     const val = BigInt.asUintN(64, num);
@@ -75,48 +67,39 @@ const bigint_to_string = (num: bigint, radix: 'hex' | 'binary' | 'decimal') => {
     return BigInt.asIntN(64, val).toString();
 };
 
-const append_register_rows = (
-    register_mnemonics: string[],
-    table_body: HTMLElement | null
-) => {
+const append_register_rows = (table_body: HTMLElement | null) => {
     if (!table_body) return;
 
-    const create_table_row = (init_value: number, mnemonic: string) => {
-        if (mnemonic == 'x0 (zero)') {
-            const sus_div = document.createElement('div');
-            sus_div.textContent = 'x0 (zero) = 0';
-            return sus_div;
-        }
-        const input_element = document.createElement('input');
-        input_element.type = 'text';
-        input_element.id = `reg_${mnemonic}`;
-        input_element.value = '0x' + init_value.toString(16);
-        // TODO: fix with tailwind classes.
-        input_element.className =
-            'text-center inline-block max-w-40 bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 m-1 p-0.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
-
-        const label = document.createElement('label');
-        label.textContent = `${mnemonic} =`;
-        label.htmlFor = input_element.id;
-
-        const row = document.createElement('div');
-        row.appendChild(label);
-        row.appendChild(input_element);
-        row.className = 'flex justify-end max-w-80';
-        return row;
-    };
-
-    const create_column = (startIndex: number) => {
+    const create_column = (start_index: IntRange<0, 17>) => {
         const column = document.createElement('div');
         column.className = 'flex flex-col';
 
         const fragment = document.createDocumentFragment();
-        for (let i = startIndex; i < startIndex + 16; i++) {
-            if (i < register_mnemonics.length) {
-                fragment.appendChild(
-                    create_table_row(0, register_mnemonics[i]!)
-                );
+        for (let i = start_index; i < start_index + 16; i++) {
+            const mnemonic = registers[i as IntRange<0, 32>];
+            if (mnemonic == 'x0 (zero)') {
+                const sus_div = document.createElement('div');
+                sus_div.textContent = 'x0 (zero) = 0';
+                fragment.appendChild(sus_div);
+                continue;
             }
+            const input_element = document.createElement('input');
+            input_element.type = 'text';
+            input_element.id = `reg_${mnemonic}`;
+            input_element.value = '0x0';
+            // TODO: fix with tailwind classes.
+            input_element.className =
+                'text-center inline-block max-w-40 bg-gray-50 border border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 m-1 p-0.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500';
+
+            const label = document.createElement('label');
+            label.textContent = `${mnemonic} =`;
+            label.htmlFor = input_element.id;
+
+            const row = document.createElement('div');
+            row.appendChild(label);
+            row.appendChild(input_element);
+            row.className = 'flex justify-end max-w-80';
+            fragment.appendChild(row);
         }
 
         column.appendChild(fragment);
@@ -135,25 +118,6 @@ const append_register_rows = (
     table_body.appendChild(container);
 };
 
-const log_line = (text: string, error_color = false) => {
-    const log_view = document.getElementById('logs');
-    if (!log_view) throw new Error('No log view');
-    // This weird height logic allows the scroll to be fixed.
-    const height =
-        log_view.parentElement?.scrollTop ==
-        log_view.parentElement!.scrollHeight -
-            log_view.parentElement!.offsetHeight;
-    const message = document.createElement('p');
-    message.textContent = text;
-    if (error_color) {
-        message.classList.add('text-red-700');
-    }
-    log_view.append(message);
-    if (height) {
-        log_view.parentElement!.scrollTop =
-            log_view.parentElement!.scrollHeight;
-    }
-};
 const update_mem_view = (memory: ReadonlyMap<bigint, bigint> | undefined) => {
     const offset_el = document.getElementById('offset');
     if (offset_el !== null && offset_el instanceof HTMLInputElement) {
@@ -168,13 +132,19 @@ const update_mem_view = (memory: ReadonlyMap<bigint, bigint> | undefined) => {
             offset_el.value = '0';
         }
         const val = BigInt(offset_el.value);
-        const mem_values = document.getElementById('mem-values')!;
+        const mem_values = document.getElementById('mem-values');
+        if (!mem_values) {
+            console.error('No memory values, unable to sync memory view');
+            console.error(memory);
+            return;
+        }
         mem_values.replaceChildren();
         // Much easier than having to do for loop algebra and generating the memory address
         // offset on the fly (pretty much impossible to screw up).
         let offset_counter = val;
         for (let line_offset = 0n; line_offset < 4n; line_offset++) {
             const mem_row = document.createElement('p');
+            mem_row.textContent = '';
             for (let block_offset = 0n; block_offset < 5n; block_offset++) {
                 for (let byte_offset = 0n; byte_offset < 4; byte_offset++) {
                     mem_row.textContent += BigInt.asUintN(
@@ -202,18 +172,18 @@ addi x1, x0, 2047
 addi x1, x1, 1363
 # x1 = 3410 :)`;
     update_mem_view(undefined);
-    append_register_rows(registers, document.getElementById('registers'));
+    append_register_rows(document.getElementById('registers'));
     const editor = new EditorView({
         doc: saved_code,
         extensions: [
             basicSetup,
             materialDark,
-            StreamLanguage.define(riscv),
+            riscv(),
             EditorView.updateListener.of((v) => {
                 localStorage.setItem('code', v.state.doc.toString());
             }),
         ],
-        parent: document.getElementById('editor')!,
+        parent: document.getElementById('editor') ?? undefined,
     });
 
     const get_button = (id: string) =>
@@ -243,11 +213,11 @@ addi x1, x1, 1363
                 try {
                     const prog = compile_riscv(editor.state.doc.toString());
                     if (prog.every((el) => 'message' in el)) {
-                        prog.forEach((error) =>
-                            error.message
-                                .split('\n')
-                                .forEach((line) => log_line(line, true))
-                        );
+                        prog.forEach((error) => {
+                            error.message.split('\n').forEach((line) => {
+                                log_error(line);
+                            });
+                        });
                         return false;
                     }
                     const init_regs = [
@@ -261,16 +231,22 @@ addi x1, x1, 1363
                             return BigInt(val);
                         }),
                     ];
-                    vm = new VirtualMachine(prog, init_regs);
+                    if (init_regs.length === 32) {
+                        vm = new VirtualMachine(
+                            prog,
+                            init_regs as Tuple<bigint, 32>
+                        );
+                    } else {
+                        return false;
+                    }
                 } catch (exc) {
                     console.error(exc);
                     if (exc instanceof Error) {
-                        log_line(
-                            'Unexpected error, please file an issue on GitHub.',
-                            true
+                        log_error(
+                            'Unexpected error, please file an issue on GitHub.'
                         );
-                        log_line(exc.message, true);
-                        log_line('For more info see the JS console', true);
+                        log_error(exc.message);
+                        log_error('For more info see the JS console');
                     }
                     vm = undefined;
                     return false;
@@ -278,14 +254,14 @@ addi x1, x1, 1363
             }
             try {
                 const [line, line_no, step_again] = vm.step();
-                log_line(`[line ${line_no}]: ${line}`);
+                log_msg(`[line ${line_no.toString()}]: ${line}`);
                 return step_again;
             } catch (exc) {
                 console.error(exc);
                 if (exc instanceof Error) {
-                    exc.message
-                        .split('\n')
-                        .forEach((line) => log_line(line, true));
+                    exc.message.split('\n').forEach((line) => {
+                        log_error(line);
+                    });
                 }
                 vm = undefined;
                 return false;
@@ -296,15 +272,16 @@ addi x1, x1, 1363
             vm.registers.forEach((value, reg_id) => {
                 if (reg_id == 0) return;
                 const regs = document.querySelectorAll('#registers input');
-                if (!regs) throw new Error('No registers element!!');
-                const input = regs.item(reg_id - 1) as HTMLInputElement;
-                if (input) input.value = bigint_to_string(value, current_radix);
+                const input = regs.item(reg_id - 1);
+                if (input instanceof HTMLInputElement)
+                    input.value = bigint_to_string(value, current_radix);
             });
             update_mem_view(vm.memory);
         }
         return ret_val;
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     window.addEventListener('click', async (event) => {
         const target = event.target;
         if (!target || !(target instanceof HTMLElement)) {
@@ -317,11 +294,14 @@ addi x1, x1, 1363
             b_stop.disabled = false;
 
             let can_step_again = true;
+            // This is wrong since another handler could change b_stop, without us knowing.
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             while (can_step_again && !b_stop.disabled) {
                 await sleep(1000 / 64); // Run at approx. 64 Hz
                 can_step_again = safe_step();
             }
             b_reset.disabled = false;
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             if (b_stop.disabled) {
                 b_step.disabled = false;
                 b_run.disabled = false;
@@ -329,7 +309,6 @@ addi x1, x1, 1363
             b_stop.disabled = true;
         } else if (target.matches('#reset')) {
             console.clear();
-            bait();
             // Reset compiler state
             vm = undefined;
             update_mem_view(undefined);
@@ -354,7 +333,7 @@ addi x1, x1, 1363
         }
     });
 
-    window.addEventListener('change', async (event) => {
+    window.addEventListener('change', (event) => {
         const target = event.target;
         if (!target || !(target instanceof HTMLElement)) {
             return;
@@ -377,6 +356,7 @@ addi x1, x1, 1363
                     }
                 } catch (exception) {
                     console.error('invalid literal');
+                    console.error(exception);
                     if (register instanceof HTMLInputElement) {
                         register.value = bigint_to_string(0n, new_radix);
                     }

@@ -8,22 +8,18 @@ import {
     is_u_type,
 } from '@istrugatskiy/riscv-parser';
 
-const uint64_t = BigInt.asUintN.bind(null, 64);
-const int64_t = BigInt.asIntN.bind(null, 64);
-const int32_t = BigInt.asIntN.bind(null, 32);
-const uint32_t = BigInt.asIntN.bind(null, 32);
+const uint64_t = BigInt.asUintN.bind(undefined, 64);
+const int64_t = BigInt.asIntN.bind(undefined, 64);
+const int32_t = BigInt.asIntN.bind(undefined, 32);
+const uint32_t = BigInt.asIntN.bind(undefined, 32);
 
-// Note how explicit elif blocks are used for all instructions.
-// This is very important, since this will prevent weird else bugs
-// and allow Typescript's never type to ensure that all instructions are
-// explicitly handled.
-export const VirtualMachine = class {
-    #memory: Map<bigint, bigint> = new Map();
-    #registers: bigint[] = new Array(32).fill(0n);
-    #pc: bigint = 0n;
-    #program: program;
+export class VirtualMachine {
+    #memory = new Map<bigint, bigint>();
+    #registers;
+    #pc = 0n;
+    #program: Program;
 
-    constructor(program: program, registers: bigint[]) {
+    constructor(program: Program, registers: Tuple<bigint, 32>) {
         this.#program = program;
         this.#registers = registers;
     }
@@ -42,9 +38,9 @@ export const VirtualMachine = class {
             ) {
                 throw new Error('Illegal pc state');
             }
-            if ((this.#registers[0] ?? 0n) !== 0n) {
+            if (this.#registers[0] !== 0n) {
                 throw new Error(
-                    `Illegal zero register state: x0 = ${this.#registers[0]}`
+                    `Illegal zero register state: x0 = ${this.#registers[0].toString()}`
                 );
             }
             const inst = this.#program[Number(this.#pc / 4n)];
@@ -85,26 +81,24 @@ See the JS console for more info.`);
     }
 
     get memory() {
-        return <ReadonlyMap<bigint, bigint>>this.#memory;
+        return this.#memory as ReadonlyMap<bigint, bigint>;
     }
 
     /**
      * Evaluate instruction and return new pc.
      */
-    #eval_inst(inst: instruction): bigint {
+    #eval_inst(inst: Instruction): bigint {
         if (is_r_type(inst) || is_i_type(inst) || is_m_type(inst)) {
             // Yes, this is technically incorrect, but it makes my life easier...
-            let { name, rd, rs1 } = inst as m_type | r_type;
+            let { name } = inst;
+            const { rd, rs1 } = inst;
             if (rd !== 0) {
                 const left = this.#registers[rs1],
                     right =
                         'rs2' in inst ? this.#registers[inst.rs2] : inst.imm;
                 name = (is_i_type(inst) ? name.replace('i', '') : name) as
-                    | r_names
-                    | m_names;
-                if (left === undefined || right === undefined) {
-                    throw new Error('Registers out of range');
-                }
+                    | RegisterName
+                    | MultiplicationName;
                 if (name === 'add') {
                     this.#registers[rd] = uint64_t(left + right);
                 } else if (name === 'sub') {
@@ -226,7 +220,7 @@ See the JS console for more info.`);
                             ? -1n
                             : int32_t(int32_t(left) % int32_t(right))
                     );
-                } else if (name === 'remuw') {
+                } else {
                     this.#registers[rd] = uint64_t(
                         right === 0n
                             ? -1n
@@ -239,9 +233,6 @@ See the JS console for more info.`);
             const { name, rd, rs1, imm } = inst;
             const left = this.#registers[rd],
                 right = this.#registers[rs1];
-            if (left === undefined || right === undefined) {
-                throw new Error('Registers out of range');
-            }
             // If instruction is a store, rs1 = left, rs2 = right.
             const store_range = (end: bigint) => {
                 for (let offset = 0n; offset < end; offset++) {
@@ -271,14 +262,14 @@ See the JS console for more info.`);
                 );
             };
             const func = name.at(0) === 's' ? store_range : load_range;
-            const size = <'b' | 'h' | 'w' | 'd'>name.at(1);
+            const size = name.at(1) as 'b' | 'h' | 'w' | 'd';
             if (size === 'b') {
                 func(1n);
             } else if (size === 'h') {
                 func(2n);
             } else if (size === 'w') {
                 func(4n);
-            } else if (size == 'd') {
+            } else {
                 func(8n);
             }
             return this.#pc + 4n;
@@ -292,7 +283,7 @@ See the JS console for more info.`);
             if (rd !== 0) {
                 if (name === 'lui') {
                     this.#registers[rd] = shifted;
-                } else if (name === 'auipc') {
+                } else {
                     this.#registers[rd] = shifted + this.#pc;
                 }
             }
@@ -301,9 +292,6 @@ See the JS console for more info.`);
             const { name, rs1, rs2, imm } = inst;
             const left = this.#registers[rs1],
                 right = this.#registers[rs2];
-            if (left === undefined || right === undefined) {
-                throw new Error('Registers out of range');
-            }
             if (
                 (name === 'beq' && left === right) ||
                 (name === 'bne' && left !== right) ||
@@ -324,15 +312,12 @@ See the JS console for more info.`);
             if (name === 'jal') {
                 // Just in case :)
                 return int64_t(imm);
-            } else if (name === 'jalr') {
+            } else {
                 const right = this.#registers[inst.rs1];
-                if (right === undefined) {
-                    throw new Error('Registers out of range');
-                }
                 const result = int64_t((imm + right) & ~1n);
                 return result;
             }
         }
         throw new Error('Illegal Command');
     }
-};
+}

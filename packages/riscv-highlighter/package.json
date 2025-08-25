@@ -5,7 +5,7 @@
     "author": "codewars",
     "type": "module",
     "module": "src/syntax.ts",
-    "license": "MIT",
+    "license": "CC0-1.0",
     "main": "src/syntax.ts",
     "repository": {
         "type": "git",
@@ -13,12 +13,20 @@
         "directory": "packages/riscv-highlighter"
     },
     "devDependencies": {
-        "vitest": "^2.1.8"
+        "@codemirror/language": "^6.11.3",
+        "@lezer/generator": "^1.8.0",
+        "vitest": "^3.2.4"
     },
     "scripts": {
-        "test": "vitest"
+        "test": "vitest",
+        "mkgrammar": "yarn run lezer-generator ./src/riscv.grammar -o ./src/riscv.js"
     },
     "dependencies": {
-        "@codemirror/legacy-modes": "^6.4.2"
+        "@lezer/common": "^1.2.3",
+        "@lezer/highlight": "^1.2.1",
+        "@lezer/lr": "^1.4.2"
+    },
+    "peerDependencies": {
+        "@codemirror/language": ">=6.0.0 <7.0.0"
     }
 }

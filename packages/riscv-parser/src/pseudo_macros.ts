@@ -2,7 +2,7 @@ import { def_macro, register } from './lib_macro';
 import { coret } from './core_macros';
 import { label, reg_imm, reg_label, reg_reg, reg_reg_label } from './guards';
 
-export const PSEUDO = [
+export const pseudo_instructions = [
     def_macro(
         'bgt',
         3,

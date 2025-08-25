@@ -1,4 +1,4 @@
-export type macro_epxr = {
+export type MacroExpr = {
     name: string;
     args: string[];
     // The representation of the original line (including comments, its original spacing, etc.)
@@ -6,9 +6,9 @@ export type macro_epxr = {
     // The source code line from which this macro was derived.
     code_line: number;
 };
-export type riscv_ir = {
+export type RiscvIR = {
     labels: Map<string, number>;
-    code_lines: macro_epxr[];
+    code_lines: MacroExpr[];
 };
 
 // Thrown when a line does not contain one valid statement.
@@ -18,12 +18,12 @@ export type riscv_ir = {
 // label = named_literal:
 // macro_expr = named_literal[at least one space][zero or more arguments separated by commas]
 // valid_line = [preceeding_spaces][label | macro_expr | or nothing][ending_spaces][optional comment (hashtag followed by arbitrary characters)][newline]
-export type compile_error = {
+export type CompileError = {
     message: string;
     line: number;
 };
 
-export const parse_file = (source: string): riscv_ir | compile_error[] => {
+export const parse_file = (source: string): RiscvIR | CompileError[] => {
     const remove_comment = (line: string) => {
         const [code] = line.split('#');
         return code!;
@@ -98,7 +98,7 @@ export const string_of_macro = ({
     args,
     string_rep,
     code_line,
-}: macro_epxr) =>
+}: MacroExpr) =>
     `${name}/${args.length} [${args.join(
         ', '
     )}] from ${string_rep} @@ line ${code_line}`;

@@ -1,8 +1,8 @@
 import {
-    compile_error,
-    macro_epxr,
+    CompileError,
+    MacroExpr,
     parse_file,
-    riscv_ir,
+    RiscvIR,
     string_of_macro,
 } from './parser';
 import { abi_map } from './register_abis';
@@ -19,7 +19,7 @@ export const def_macro = <T>(
         args: string[],
         label_context: Map<string, number>
     ) => T | undefined,
-    expander: (args: T, label_context: Map<string, number>) => instruction[]
+    expander: (args: T, label_context: Map<string, number>) => Instruction[]
 ) => {
     return {
         name,
@@ -35,10 +35,10 @@ export const def_macro = <T>(
 };
 
 export const expand_code = (
-    { labels, code_lines }: riscv_ir,
+    { labels, code_lines }: RiscvIR,
     macros: ReturnType<typeof def_macro>[]
-): program | compile_error[] => {
-    const first_valid_macro = (expr: macro_epxr) =>
+): Program | CompileError[] => {
+    const first_valid_macro = (expr: MacroExpr) =>
         macros.find(
             ({ name, args, guard }) =>
                 expr.name === name &&
@@ -46,13 +46,13 @@ export const expand_code = (
                 guard(expr.args, labels) !== undefined
         )?.expander;
     const instructions_with_errors = code_lines.map(
-        (expr): compile_error | program[0] => {
+        (expr): CompileError | Program[0] => {
             const { args, code_line, string_rep } = expr;
             const macro = first_valid_macro(expr);
             if (macro === undefined) {
                 return {
                     message: `** (UnboundMacroError) **
-Unbound expression @ line ${code_line}!
+Unbound expression @ line ${code_line.toString()}!
 Macro expression: ${string_rep}
 Interpreted as: ${string_of_macro(expr)}
 Hint: You probably used an unsupported (or misspelled) instruction.`,
@@ -67,11 +67,11 @@ Hint: You probably used an unsupported (or misspelled) instruction.`,
         }
     );
     const errors = instructions_with_errors.filter(
-        (inst): inst is compile_error => 'message' in inst
+        (inst): inst is CompileError => 'message' in inst
     );
     if (errors.length !== 0) return errors;
     return instructions_with_errors.filter(
-        (inst): inst is program[0] => !('message' in inst)
+        (inst): inst is Program[0] => !('message' in inst)
     );
 };
 
@@ -93,7 +93,7 @@ export const valid_list = <T extends unknown[]>(
 ): undefined | { [P in keyof T]: T[P] & {} } =>
     list.includes(undefined) ? undefined : (list as any);
 
-export const register = (reg: string | undefined): number | undefined =>
+export const register = (reg: string | undefined): IntRange<0, 32> | undefined =>
     reg === undefined ? undefined : abi_map.get(reg.toLowerCase());
 
 export const immediate = (
@@ -148,7 +148,7 @@ export const immediate_or_label = (
     if (imm_label === undefined) return undefined;
     imm_label = imm_label.replaceAll(' ', '');
     let added_offset = 0n;
-    const [label_str, sign, offset] = imm_label.split(/(\+|\-)/);
+    const [label_str, sign, offset] = imm_label.split(/(\+|-)/);
     if (label_str !== undefined && sign !== undefined && offset !== undefined) {
         added_offset = immediate(offset, 0n, 2n ** 64n - 1n) ?? 0n;
         if (sign === '-') {
@@ -180,8 +180,8 @@ export const imm_register = (
     if (left === undefined || right.length !== 1) {
         return undefined;
     }
-    const reg = right.at(0)!;
-    if (!reg.endsWith(')')) {
+    const [reg] = right;
+    if (!reg?.endsWith(')')) {
         return undefined;
     }
 

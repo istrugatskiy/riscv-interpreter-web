@@ -14,16 +14,16 @@
  */
 
 import {
-    B_NAMES,
-    CORE_MACROS,
-    I_NAMES,
-    M_NAMES,
-    MEM_NAMES,
-    R_NAMES,
-    U_NAMES,
+    b_names,
+    core_macros,
+    i_names,
+    m_names,
+    mem_names,
+    r_names,
+    u_names,
 } from './core_macros';
 import { bytecode_of_string } from './lib_macro';
-import { PSEUDO } from './pseudo_macros';
+import { pseudo_instructions } from './pseudo_macros';
 
 export * from './core_macros';
 export * from './pseudo_macros';
@@ -31,27 +31,27 @@ export * from './lib_macro';
 export * from './guards';
 export * from './parser';
 
-export const compile_riscv = bytecode_of_string.bind(null, [
-    ...CORE_MACROS,
-    ...PSEUDO,
+export const compile_riscv = bytecode_of_string.bind(undefined, [
+    ...core_macros,
+    ...pseudo_instructions,
 ]);
 
 const belongs_to_array = <TValue>(
     value: unknown,
-    allowedValues: ReadonlyArray<TValue>
-): value is TValue => (allowedValues as ReadonlyArray<unknown>).includes(value);
+    allowed: readonly TValue[]
+): value is TValue => (allowed as readonly unknown[]).includes(value);
 
-export const is_r_type = (inst: instruction): inst is r_type =>
-    belongs_to_array(inst.name, R_NAMES);
-export const is_i_type = (inst: instruction): inst is i_type =>
-    belongs_to_array(inst.name, I_NAMES);
-export const is_mem_type = (inst: instruction): inst is mem_type =>
-    belongs_to_array(inst.name, MEM_NAMES);
-export const is_u_type = (inst: instruction): inst is u_type =>
-    belongs_to_array(inst.name, U_NAMES);
-export const is_b_type = (inst: instruction): inst is b_type =>
-    belongs_to_array(inst.name, B_NAMES);
-export const is_j_type = (inst: instruction): inst is j_type =>
+export const is_r_type = (inst: Instruction): inst is RegisterType =>
+    belongs_to_array(inst.name, r_names);
+export const is_i_type = (inst: Instruction): inst is ImmediateType =>
+    belongs_to_array(inst.name, i_names);
+export const is_mem_type = (inst: Instruction): inst is MemoryType =>
+    belongs_to_array(inst.name, mem_names);
+export const is_u_type = (inst: Instruction): inst is UpperImmediateType =>
+    belongs_to_array(inst.name, u_names);
+export const is_b_type = (inst: Instruction): inst is BranchType =>
+    belongs_to_array(inst.name, b_names);
+export const is_j_type = (inst: Instruction): inst is JumpType =>
     belongs_to_array(inst.name, ['jal', 'jalr']);
-export const is_m_type = (inst: instruction): inst is m_type =>
-    belongs_to_array(inst.name, M_NAMES);
+export const is_m_type = (inst: Instruction): inst is MultiplicationType =>
+    belongs_to_array(inst.name, m_names);
