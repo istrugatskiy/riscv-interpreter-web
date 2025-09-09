@@ -45,6 +45,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@babel/runtime", "npm:7.28.3"],\
           ["@codemirror/language", "npm:6.11.3"],\
+          ["@codemirror/lint", "npm:6.8.5"],\
           ["@eslint/js", "npm:9.33.0"],\
           ["@istrugatskiy/riscv-highlighter", "virtual:8b1fb81bf4d8925caa7166bade594d6194c6d680562151271f799888ad4c431c9126207ec11daec1a63cb932499ccb15da3dfea0e0c4591a8a820a4b59399618#workspace:packages/riscv-highlighter"],\
           ["@istrugatskiy/riscv-parser", "workspace:packages/riscv-parser"],\
@@ -6061,6 +6062,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@babel/runtime", "npm:7.28.3"],\
           ["@codemirror/language", "npm:6.11.3"],\
+          ["@codemirror/lint", "npm:6.8.5"],\
           ["@eslint/js", "npm:9.33.0"],\
           ["@istrugatskiy/riscv-highlighter", "virtual:8b1fb81bf4d8925caa7166bade594d6194c6d680562151271f799888ad4c431c9126207ec11daec1a63cb932499ccb15da3dfea0e0c4591a8a820a4b59399618#workspace:packages/riscv-highlighter"],\
           ["@istrugatskiy/riscv-parser", "workspace:packages/riscv-parser"],\

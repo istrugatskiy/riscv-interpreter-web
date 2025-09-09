@@ -3,10 +3,8 @@ name: Build and Deploy RISC-V Interpreter Web
 on:
     push:
         branches:
-            - main # Adjust this if your default branch is different
-
+            - main
 jobs:
-    # Build job
     build:
         runs-on: ubuntu-latest
         steps:
@@ -18,29 +16,22 @@ jobs:
               with:
                   node-version: '18'
 
-            - name: Enable Corepack and set Yarn version
-              run: |
-                  corepack enable
-                  corepack prepare yarn@4.4.1 --activate
-                  yarn config set enableGlobalCache false
-
             - name: Install dependencies
-              run: yarn install
+              run: .yarn/releases/yarn-4.9.2.cjs install
 
             - name: Build with Parcel
-              run: yarn parcel build src/index.html --public-url ./
+              run: .yarn/releases/yarn-4.9.2.cjs parcel build src/index.html --public-url ./
 
             - name: Upload artifact for GitHub Pages
               uses: actions/upload-pages-artifact@v3
               with:
                   path: ./dist
 
-    # Deploy job
     deploy:
         needs: build
         permissions:
-            pages: write # to deploy to Pages
-            id-token: write # to verify the deployment originates from an appropriate source
+            pages: write
+            id-token: write
 
         environment:
             name: github-pages

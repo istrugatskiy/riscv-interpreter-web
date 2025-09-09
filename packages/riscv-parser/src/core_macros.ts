@@ -1,11 +1,10 @@
-import { reg_label, reg_reg_imm, reg_reg_label, reg_reg_reg } from './guards';
 import {
     bytecode_of_string,
     def_macro,
-    imm_register,
-    immediate,
-    register,
-    valid_list,
+    imm_reg_type,
+    imm_type,
+    label_type,
+    reg_type,
 } from './lib_macro';
 
 export const r_names = [
@@ -26,16 +25,21 @@ export const r_names = [
     'sraw',
 ] as const;
 const r_type = r_names.map((name) =>
-    def_macro(name, 3, reg_reg_reg, ([rd, rs1, rs2]) => [
-        {
-            name,
-            rd,
-            rs1,
-            rs2,
-        },
-    ])
+    def_macro(
+        name,
+        [reg_type, reg_type, reg_type] as const,
+        ([rd, rs1, rs2]) => [
+            {
+                name,
+                rd,
+                rs1,
+                rs2,
+            },
+        ]
+    )
 );
 
+// TODO: fix bad shift types (you can't shift by more than 63!!!)
 export const i_names = [
     'addi',
     'andi',
@@ -52,9 +56,11 @@ export const i_names = [
     'sraiw',
 ] as const;
 const i_type = i_names.map((name) =>
-    def_macro(name, 3, reg_reg_imm, ([rd, rs1, imm]) => [
-        { name, rd, rs1, imm },
-    ])
+    def_macro(
+        name,
+        [reg_type, reg_type, imm_type(-2048n, 2047n)] as const,
+        ([rd, rs1, imm]) => [{ name, rd, rs1, imm }]
+    )
 );
 
 export const mem_names = [
@@ -70,12 +76,7 @@ export const mem_names = [
 const mem_type = mem_names.map((name) =>
     def_macro(
         name,
-        2,
-        ([rd, imm_reg]) =>
-            valid_list([
-                register(rd),
-                imm_register(imm_reg, -2048n, 2047n),
-            ] as const),
+        [reg_type, imm_reg_type(-2048n, 2047n)] as const,
         ([rd, [imm, rs1]]) => [{ name, rd, rs1, imm }]
     )
 );
@@ -84,25 +85,29 @@ export const u_names = ['lui', 'auipc'] as const;
 const u_type = u_names.map((name) =>
     def_macro(
         name,
-        2,
-        ([rd, imm]) =>
-            valid_list([register(rd), immediate(imm, 0n, 0xfffffn)] as const),
+        [reg_type, imm_type(0n, 0xfffffn)] as const,
         ([rd, imm]) => [{ name, rd, imm }]
     )
 );
 
 export const b_names = ['beq', 'bne', 'blt', 'bltu', 'bge', 'bgeu'] as const;
 const b_type = b_names.map((name) =>
-    def_macro(name, 3, reg_reg_label, ([rs1, rs2, imm]) => [
-        { name, rs1, rs2, imm },
-    ])
+    def_macro(
+        name,
+        [reg_type, reg_type, label_type] as const,
+        ([rs1, rs2, imm]) => [{ name, rs1, rs2, imm }]
+    )
 );
 
 const j_type = [
-    def_macro('jal', 2, reg_label, ([rd, imm]) => [{ name: 'jal', rd, imm }]),
-    def_macro('jalr', 3, reg_reg_label, ([rd, rs1, imm]) => [
-        { name: 'jalr', rd, rs1, imm },
+    def_macro('jal', [reg_type, label_type] as const, ([rd, imm]) => [
+        { name: 'jal', rd, imm },
     ]),
+    def_macro(
+        'jalr',
+        [reg_type, reg_type, label_type] as const,
+        ([rd, rs1, imm]) => [{ name: 'jalr', rd, rs1, imm }]
+    ),
 ];
 
 export const m_names = [
@@ -121,14 +126,18 @@ export const m_names = [
     'remuw',
 ] as const;
 const m_type = m_names.map((name) =>
-    def_macro(name, 3, reg_reg_reg, ([rd, rs1, rs2]) => [
-        {
-            name,
-            rd,
-            rs1,
-            rs2,
-        },
-    ])
+    def_macro(
+        name,
+        [reg_type, reg_type, reg_type] as const,
+        ([rd, rs1, rs2]) => [
+            {
+                name,
+                rd,
+                rs1,
+                rs2,
+            },
+        ]
+    )
 );
 
 export const core_macros = [

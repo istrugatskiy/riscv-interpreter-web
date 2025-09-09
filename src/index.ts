@@ -4,8 +4,9 @@ import { materialDark } from '@uiw/codemirror-theme-material';
 
 import { riscv } from '@istrugatskiy/riscv-highlighter';
 import { VirtualMachine } from '@istrugatskiy/riscv-vm';
-import { compile_riscv } from '@istrugatskiy/riscv-parser';
+import { compile_riscv, mk_error_string } from '@istrugatskiy/riscv-parser';
 import { log_error, log_msg } from './log_manager';
+import { linter } from '@codemirror/lint';
 /**
  * Sleeps for a given amount of time the current "thread".
  * @param ms - The amount of time to sleep in milliseconds.
@@ -173,12 +174,42 @@ addi x1, x1, 1363
 # x1 = 3410 :)`;
     update_mem_view(undefined);
     append_register_rows(document.getElementById('registers'));
+    const get_line_range = (line_no: number, code: string) => {
+        let from = 0,
+            current_line = 0;
+
+        for (let i = 0; i < code.length; i++) {
+            const ch = code.charAt(i);
+
+            if (current_line === line_no && ch === '\n') {
+                return { from, to: i };
+            } else if (ch === '\n') {
+                current_line++;
+                from = i + 1;
+            }
+        }
+
+        return { from, to: code.length };
+    };
+    const riscv_linter = linter((view) => {
+        const code = view.state.doc.toString();
+        const compiled_code = compile_riscv(code);
+        if (compiled_code.every((item) => 'error_type' in item)) {
+            return compiled_code.map((error) => ({
+                severity: 'error',
+                ...get_line_range(error.line - 1, code),
+                message: mk_error_string(error),
+            }));
+        }
+        return [];
+    });
     const editor = new EditorView({
         doc: saved_code,
         extensions: [
             basicSetup,
             materialDark,
             riscv(),
+            riscv_linter,
             EditorView.updateListener.of((v) => {
                 localStorage.setItem('code', v.state.doc.toString());
             }),
@@ -212,11 +243,13 @@ addi x1, x1, 1363
             if (vm === undefined) {
                 try {
                     const prog = compile_riscv(editor.state.doc.toString());
-                    if (prog.every((el) => 'message' in el)) {
+                    if (prog.every((el) => 'error_type' in el)) {
                         prog.forEach((error) => {
-                            error.message.split('\n').forEach((line) => {
-                                log_error(line);
-                            });
+                            mk_error_string(error)
+                                .split('\n')
+                                .forEach((line) => {
+                                    log_error(line);
+                                });
                         });
                         return false;
                     }

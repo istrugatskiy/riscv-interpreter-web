@@ -11,7 +11,7 @@ import {
 const uint64_t = BigInt.asUintN.bind(undefined, 64);
 const int64_t = BigInt.asIntN.bind(undefined, 64);
 const int32_t = BigInt.asIntN.bind(undefined, 32);
-const uint32_t = BigInt.asIntN.bind(undefined, 32);
+const uint32_t = BigInt.asUintN.bind(undefined, 32);
 
 export class VirtualMachine {
     #memory = new Map<bigint, bigint>();

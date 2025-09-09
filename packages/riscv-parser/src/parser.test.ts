@@ -92,12 +92,13 @@ test('Detects invalid lines', () => {
   `)
     ).toStrictEqual([
         {
-            message: `** (CompileError) **
-Irreducable expression @ line 4!
-Expression: !skibidi sigma rizz
-Normalized as: !skibidi sigma rizz
-Is not empty but does not match label_expr | macro_expr`,
+            error_type: 'Parser',
+            detailed_error_msg:
+                '"!skibidi sigma rizz" does not satisfy LabelDef | MacroExpr',
             line: 4,
+            hint:
+                'Here is how your statement was normalized by the interpreter:\n' +
+                '!skibidi sigma rizz',
         },
     ]);
 });
@@ -127,12 +128,10 @@ test('Detects invalid labels', () => {
   `)
     ).toStrictEqual([
         {
-            message: `** (CompileError) **
-Irreducable expression @ line 3!
-Expression: ())):
-Normalized as: ())):
-Is not empty but does not match label_expr | macro_expr`,
+            error_type: 'Parser',
+            detailed_error_msg: '"())):" does not satisfy LabelDef | MacroExpr',
             line: 3,
+            hint: 'Here is how your statement was normalized by the interpreter:\n())):',
         },
     ]);
 });

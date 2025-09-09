@@ -1,5 +1,5 @@
 /**
- * Idea for parsing:
+ * Idea for parsing (old):
  *  - Start by splitting into lines that contain some code and removing others.
  *    We store a normalized version of that line (i.e. no spaces, or comments)
  *    as well as the original with its line number (for the log).
@@ -28,7 +28,6 @@ import { pseudo_instructions } from './pseudo_macros';
 export * from './core_macros';
 export * from './pseudo_macros';
 export * from './lib_macro';
-export * from './guards';
 export * from './parser';
 
 export const compile_riscv = bytecode_of_string.bind(undefined, [

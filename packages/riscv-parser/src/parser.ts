@@ -1,3 +1,5 @@
+import { InterpreterError } from './lib_macro';
+
 export type MacroExpr = {
     name: string;
     args: string[];
@@ -18,15 +20,11 @@ export type RiscvIR = {
 // label = named_literal:
 // macro_expr = named_literal[at least one space][zero or more arguments separated by commas]
 // valid_line = [preceeding_spaces][label | macro_expr | or nothing][ending_spaces][optional comment (hashtag followed by arbitrary characters)][newline]
-export type CompileError = {
-    message: string;
-    line: number;
-};
 
-export const parse_file = (source: string): RiscvIR | CompileError[] => {
+export const parse_file = (source: string): RiscvIR | InterpreterError[] => {
     const remove_comment = (line: string) => {
         const [code] = line.split('#');
-        return code!;
+        return code ?? '';
     };
     // Classic well designed and easy to use text systems :)))))
     const lines = source
@@ -51,12 +49,10 @@ export const parse_file = (source: string): RiscvIR | CompileError[] => {
     );
     if (invalid_lines.length) {
         return invalid_lines.map(({ normalized, string_rep, code_line }) => ({
-            message: `** (CompileError) **
-Irreducable expression @ line ${code_line}!
-Expression: ${string_rep}
-Normalized as: ${normalized}
-Is not empty but does not match label_expr | macro_expr`,
+            error_type: 'Parser',
+            detailed_error_msg: `"${string_rep}" does not satisfy LabelDef | MacroExpr`,
             line: code_line,
+            hint: `Here is how your statement was normalized by the interpreter:\n${normalized}`,
         }));
     }
     let prev_lines = 0;
@@ -99,6 +95,6 @@ export const string_of_macro = ({
     string_rep,
     code_line,
 }: MacroExpr) =>
-    `${name}/${args.length} [${args.join(
+    `${name}/${args.length.toString()} [${args.join(
         ', '
-    )}] from ${string_rep} @@ line ${code_line}`;
+    )}] from ${string_rep} @@ line ${code_line.toString()}`;
