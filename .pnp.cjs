@@ -44,6 +44,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./",\
         "packageDependencies": [\
           ["@babel/runtime", "npm:7.28.3"],\
+          ["@codemirror/autocomplete", "npm:6.18.7"],\
           ["@codemirror/language", "npm:6.11.3"],\
           ["@codemirror/lint", "npm:6.8.5"],\
           ["@eslint/js", "npm:9.33.0"],\
@@ -103,6 +104,17 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/@codemirror-autocomplete-npm-6.18.6-8411d8f056-6506949397.zip/node_modules/@codemirror/autocomplete/",\
         "packageDependencies": [\
           ["@codemirror/autocomplete", "npm:6.18.6"],\
+          ["@codemirror/language", "npm:6.11.3"],\
+          ["@codemirror/state", "npm:6.5.2"],\
+          ["@codemirror/view", "npm:6.38.1"],\
+          ["@lezer/common", "npm:1.2.1"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:6.18.7", {\
+        "packageLocation": "./.yarn/cache/@codemirror-autocomplete-npm-6.18.7-669d8427da-562c13711f.zip/node_modules/@codemirror/autocomplete/",\
+        "packageDependencies": [\
+          ["@codemirror/autocomplete", "npm:6.18.7"],\
           ["@codemirror/language", "npm:6.11.3"],\
           ["@codemirror/state", "npm:6.5.2"],\
           ["@codemirror/view", "npm:6.38.1"],\
@@ -6061,6 +6073,7 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./",\
         "packageDependencies": [\
           ["@babel/runtime", "npm:7.28.3"],\
+          ["@codemirror/autocomplete", "npm:6.18.7"],\
           ["@codemirror/language", "npm:6.11.3"],\
           ["@codemirror/lint", "npm:6.8.5"],\
           ["@eslint/js", "npm:9.33.0"],\

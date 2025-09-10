@@ -4,9 +4,23 @@ import { materialDark } from '@uiw/codemirror-theme-material';
 
 import { riscv } from '@istrugatskiy/riscv-highlighter';
 import { VirtualMachine } from '@istrugatskiy/riscv-vm';
-import { compile_riscv, mk_error_string } from '@istrugatskiy/riscv-parser';
+import {
+    compile_riscv,
+    core_macros,
+    DefMacroExpr,
+    mk_error_string,
+    pseudo_instructions,
+    string_of_def_macro,
+} from '@istrugatskiy/riscv-parser';
 import { log_error, log_msg } from './log_manager';
 import { linter } from '@codemirror/lint';
+import {
+    autocompletion,
+    completeFromList,
+    snippet,
+    snippetCompletion,
+} from '@codemirror/autocomplete';
+import { abi_map } from '@istrugatskiy/riscv-parser/src/register_abis';
 /**
  * Sleeps for a given amount of time the current "thread".
  * @param ms - The amount of time to sleep in milliseconds.
@@ -203,12 +217,44 @@ addi x1, x1, 1363
         }
         return [];
     });
+
+    const reg_completions = Array.from(abi_map.entries()).map(
+        ([reg_name, reg_num]) => ({
+            label: reg_name,
+            detail: 'MacroName',
+            type: 'Register',
+            ...(reg_name.startsWith('x')
+                ? {}
+                : { info: `(x${reg_num.toString()})` }),
+        })
+    );
+    const macro_completions = [...core_macros, ...pseudo_instructions].map(
+        (macro) =>
+            snippetCompletion(
+                `${macro.name} ${macro.arglist_type.map(({ name }, arg_idx) => (name !== 'imm_register' ? `#{${name}${arg_idx.toString()}}` : `#{imm${arg_idx.toString()}}(#{reg${arg_idx.toString()}})`)).join(', ')}`.trim(),
+                {
+                    label: `${macro.name} ${macro.arglist_type.map(({ name }) => (name !== 'imm_register' ? name : 'imm(reg)')).join(', ')}`.trim(),
+                    detail: `: ${string_of_def_macro(macro)} (${(core_macros as DefMacroExpr[]).includes(macro) ? 'Core' : 'Pseudo'})`,
+                    type: 'MacroName',
+                }
+            )
+    );
+    const riscv_language = riscv().language;
+
     const editor = new EditorView({
         doc: saved_code,
         extensions: [
             basicSetup,
             materialDark,
-            riscv(),
+            riscv_language,
+            autocompletion({
+                override: [
+                    completeFromList([
+                        ...reg_completions,
+                        ...macro_completions,
+                    ]),
+                ],
+            }),
             riscv_linter,
             EditorView.updateListener.of((v) => {
                 localStorage.setItem('code', v.state.doc.toString());

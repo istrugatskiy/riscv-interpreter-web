@@ -46,6 +46,8 @@ export type InterpreterError = {
     hint: string;
 };
 
+export type DefMacroExpr = ReturnType<typeof def_macro>;
+
 export const mk_error_string = ({
     error_type,
     detailed_error_msg,
@@ -60,7 +62,7 @@ const string_of_argument_type = (argument: ArgumentType) =>
     'min' in argument
         ? `${argument.name}(${argument.min.toString(16)}, ${argument.max.toString(16)})`
         : argument.name;
-const string_of_def_macro = ({
+export const string_of_def_macro = ({
     name,
     arglist_type,
 }: {
@@ -139,7 +141,7 @@ Note: the interpreter may refuse to parse ambiguous immediates you may think are
 
 export const expand_code = (
     { labels, code_lines }: RiscvIR,
-    macros: ReturnType<typeof def_macro>[]
+    macros: DefMacroExpr[]
 ): Program | InterpreterError[] => {
     const instructions_with_errors = code_lines.map(
         (expr): InterpreterError | Program[0] => {
