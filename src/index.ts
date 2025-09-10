@@ -17,7 +17,6 @@ import { linter } from '@codemirror/lint';
 import {
     autocompletion,
     completeFromList,
-    snippet,
     snippetCompletion,
 } from '@codemirror/autocomplete';
 import { abi_map } from '@istrugatskiy/riscv-parser/src/register_abis';
@@ -221,7 +220,7 @@ addi x1, x1, 1363
     const reg_completions = Array.from(abi_map.entries()).map(
         ([reg_name, reg_num]) => ({
             label: reg_name,
-            detail: 'MacroName',
+            detail: 'Register',
             type: 'Register',
             ...(reg_name.startsWith('x')
                 ? {}

@@ -22,13 +22,14 @@ import {
     r_names,
     u_names,
 } from './core_macros';
-import { bytecode_of_string } from './lib_macro';
+import {
+    bytecode_of_string,
+    DefMacroExpr,
+    InterpreterError,
+    mk_error_string,
+    string_of_def_macro,
+} from './lib_macro';
 import { pseudo_instructions } from './pseudo_macros';
-
-export * from './core_macros';
-export * from './pseudo_macros';
-export * from './lib_macro';
-export * from './parser';
 
 export const compile_riscv = bytecode_of_string.bind(undefined, [
     ...core_macros,
@@ -54,3 +55,12 @@ export const is_j_type = (inst: Instruction): inst is JumpType =>
     belongs_to_array(inst.name, ['jal', 'jalr']);
 export const is_m_type = (inst: Instruction): inst is MultiplicationType =>
     belongs_to_array(inst.name, m_names);
+
+export {
+    InterpreterError,
+    DefMacroExpr,
+    pseudo_instructions,
+    core_macros,
+    mk_error_string,
+    string_of_def_macro,
+};
