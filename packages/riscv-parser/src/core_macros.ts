@@ -156,7 +156,7 @@ export const core = bytecode_of_string.bind(undefined, core_macros);
 // Thx stackoverflow: https://stackoverflow.com/questions/68152638/what-is-the-default-tag-function-for-template-literals
 export const coret = (
     parts: TemplateStringsArray,
-    ...values: unknown[]
+    ...values: (number | string | bigint)[]
 ): Instruction[] => {
     const prog = core(
         parts
@@ -165,7 +165,8 @@ export const coret = (
                     ? [
                           part,
                           String(
-                              Number.isInteger(values[i])
+                              Number.isInteger(values[i]) ||
+                                  typeof values[i] === 'bigint'
                                   ? `x${(values[i] as number).toString()}`
                                   : values[i]
                           ),

@@ -97,12 +97,12 @@ export const pseudo_instructions = [
         [reg_type, reg_type] as const,
         ([rd, rs]) => coret`slt ${rd}, zero, ${rs}`
     ),
-    def_macro('j', [label_type] as const, (imm) => coret`jal zero, ${imm}`),
-    def_macro('jr', [reg_type] as const, (rs) => coret`jalr zero, ${rs}, 0`),
+    def_macro('j', [label_type] as const, ([imm]) => coret`jal zero, ${imm}`),
+    def_macro('jr', [reg_type] as const, ([rs]) => coret`jalr zero, ${rs}, 0`),
     def_macro('ret', [], () => coret`jalr zero, ra, 0`),
     // Additional jal/jalr variants:
-    def_macro('jal', [label_type] as const, (imm) => coret`jal ra, ${imm}`),
-    def_macro('jalr', [reg_type] as const, (rs) => coret`jalr ra, ${rs}, 0`),
+    def_macro('jal', [label_type] as const, ([imm]) => coret`jal ra, ${imm}`),
+    def_macro('jalr', [reg_type] as const, ([rs]) => coret`jalr ra, ${rs}, 0`),
     def_macro('nop', [], () => coret`addi x0, x0, 0`),
     def_macro(
         'li',
