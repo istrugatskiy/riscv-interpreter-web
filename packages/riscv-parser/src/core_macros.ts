@@ -165,8 +165,7 @@ export const coret = (
                     ? [
                           part,
                           String(
-                              Number.isInteger(values[i]) ||
-                                  typeof values[i] === 'bigint'
+                              Number.isInteger(values[i])
                                   ? `x${(values[i] as number).toString()}`
                                   : values[i]
                           ),
