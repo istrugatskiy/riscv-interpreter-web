@@ -316,7 +316,7 @@ See the JS console for more info.`);
             if (name === 'jal') {
                 // Just in case :)
                 return int64_t(imm);
-            } else {
+            } else if (name === 'jalr') {
                 const right = this.#registers[inst.rs1];
                 const result = int64_t((imm + right) & ~1n);
                 return result;

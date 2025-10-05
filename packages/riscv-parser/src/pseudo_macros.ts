@@ -97,6 +97,11 @@ export const pseudo_instructions = [
         [reg_type, reg_type] as const,
         ([rd, rs]) => coret`slt ${rd}, zero, ${rs}`
     ),
+    def_macro(
+        'call',
+        [label_type] as const,
+        ([offset]) => coret`jal ra, ${offset}`
+    ),
     def_macro('j', [label_type] as const, ([imm]) => coret`jal zero, ${imm}`),
     def_macro('jr', [reg_type] as const, ([rs]) => coret`jalr zero, ${rs}, 0`),
     def_macro('ret', [], () => coret`jalr zero, ra, 0`),
