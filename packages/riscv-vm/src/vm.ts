@@ -196,11 +196,11 @@ See the JS console for more info.`);
                     );
                 } else if (name === 'rem') {
                     this.#registers[rd] = uint64_t(
-                        right === 0n ? -1n : int64_t(left) % int64_t(right)
+                        right === 0n ? left : int64_t(left) % int64_t(right)
                     );
                 } else if (name === 'remu') {
                     this.#registers[rd] = uint64_t(
-                        right === 0n ? -1n : left % right
+                        right === 0n ? left : left % right
                     );
                 } else if (name === 'divw') {
                     this.#registers[rd] = uint64_t(
@@ -216,15 +216,19 @@ See the JS console for more info.`);
                     );
                 } else if (name === 'remw') {
                     this.#registers[rd] = uint64_t(
-                        right === 0n
-                            ? -1n
-                            : int32_t(int32_t(left) % int32_t(right))
+                        int32_t(
+                            right === 0n ? left : int32_t(left) % int32_t(right)
+                        )
                     );
-                } else {
+                    // Disable this check because we want to make clear the instruction we are operating on.
+                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+                } else if (name === 'remuw') {
                     this.#registers[rd] = uint64_t(
-                        right === 0n
-                            ? -1n
-                            : int32_t(uint32_t(left) % uint32_t(right))
+                        int32_t(
+                            right === 0n
+                                ? uint32_t(left)
+                                : uint32_t(left) % uint32_t(right)
+                        )
                     );
                 }
             }
