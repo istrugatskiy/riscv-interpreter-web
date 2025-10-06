@@ -147,10 +147,10 @@ export const expand_code = (
         (expr): InterpreterError | Program[0] => {
             const { args, code_line, string_rep } = expr;
 
-            const candidate_macros = macros.filter(
+            const correct_name_macros = macros.filter(
                 ({ name }) => expr.name === name
             );
-            if (candidate_macros.length === 0) {
+            if (correct_name_macros.length === 0) {
                 // Find similar macros using fuzzy searching:
                 // See: https://en.wikipedia.org/wiki/Levenshtein_distance#Iterative_with_two_matrix_rows
                 const str_distance = (s: string, t: string) => {
@@ -202,7 +202,11 @@ export const expand_code = (
                 };
             }
 
-            const expandable_macros = candidate_macros.filter(
+            const correct_length_macros = correct_name_macros.filter(
+                ({ arglist_type }) => arglist_type.length === args.length
+            );
+
+            const expandable_macros = correct_length_macros.filter(
                 (macro) =>
                     !('error_type' in macro.try_expand(args, labels, code_line))
             );
@@ -218,7 +222,14 @@ export const expand_code = (
 
             const macro = expandable_macros[0];
             if (macro === undefined) {
-                return candidate_macros[0]?.try_expand(
+                if (correct_length_macros.length > 0) {
+                    return correct_length_macros[0]?.try_expand(
+                        args,
+                        labels,
+                        code_line
+                    ) as InterpreterError;
+                }
+                return correct_name_macros[0]?.try_expand(
                     args,
                     labels,
                     code_line

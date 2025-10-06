@@ -105,7 +105,7 @@ const j_type = [
     ]),
     def_macro(
         'jalr',
-        [reg_type, reg_type, label_type] as const,
+        [reg_type, reg_type, imm_type(-2048n, 2047n)] as const,
         ([rd, rs1, imm]) => [{ name: 'jalr', rd, rs1, imm }]
     ),
 ];

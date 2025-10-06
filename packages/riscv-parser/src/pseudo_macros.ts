@@ -1,4 +1,10 @@
-import { def_macro, imm_type, label_type, reg_type } from './lib_macro';
+import {
+    def_macro,
+    imm_reg_type,
+    imm_type,
+    label_type,
+    reg_type,
+} from './lib_macro';
 import { coret } from './core_macros';
 
 export const pseudo_instructions = [
@@ -101,6 +107,11 @@ export const pseudo_instructions = [
         'call',
         [label_type] as const,
         ([offset]) => coret`jal ra, ${offset}`
+    ),
+    def_macro(
+        'jalr',
+        [reg_type, imm_reg_type(-2048n, 2047n)] as const,
+        ([rd, [imm, rs1]]) => coret`jalr ${rd}, ${rs1}, ${imm}`
     ),
     def_macro('j', [label_type] as const, ([imm]) => coret`jal zero, ${imm}`),
     def_macro('jr', [reg_type] as const, ([rs]) => coret`jalr zero, ${rs}, 0`),
