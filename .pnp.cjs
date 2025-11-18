@@ -15,12 +15,8 @@ const RAW_RUNTIME_STATE =
       "reference": "workspace:."\
     },\
     {\
-      "name": "@istrugatskiy/riscv-highlighter",\
-      "reference": "workspace:packages/riscv-highlighter"\
-    },\
-    {\
-      "name": "@istrugatskiy/riscv-parser",\
-      "reference": "workspace:packages/riscv-parser"\
+      "name": "@istrugatskiy/riscv-compiler",\
+      "reference": "workspace:packages/riscv-compiler"\
     },\
     {\
       "name": "@istrugatskiy/riscv-vm",\
@@ -31,8 +27,7 @@ const RAW_RUNTIME_STATE =
   "ignorePatternData": "(^(?:\\\\.yarn\\\\/sdks(?:\\\\/(?!\\\\.{1,2}(?:\\\\/|$))(?:(?:(?!(?:^|\\\\/)\\\\.{1,2}(?:\\\\/|$)).)*?)|$))$)",\
   "pnpZipBackend": "libzip",\
   "fallbackExclusionList": [\
-    ["@istrugatskiy/riscv-highlighter", ["virtual:8b1fb81bf4d8925caa7166bade594d6194c6d680562151271f799888ad4c431c9126207ec11daec1a63cb932499ccb15da3dfea0e0c4591a8a820a4b59399618#workspace:packages/riscv-highlighter", "workspace:packages/riscv-highlighter"]],\
-    ["@istrugatskiy/riscv-parser", ["workspace:packages/riscv-parser"]],\
+    ["@istrugatskiy/riscv-compiler", ["workspace:packages/riscv-compiler"]],\
     ["@istrugatskiy/riscv-vm", ["workspace:packages/riscv-vm"]],\
     ["riscv", ["workspace:."]]\
   ],\
@@ -48,10 +43,8 @@ const RAW_RUNTIME_STATE =
           ["@codemirror/language", "npm:6.11.3"],\
           ["@codemirror/lint", "npm:6.8.5"],\
           ["@eslint/js", "npm:9.33.0"],\
-          ["@istrugatskiy/riscv-highlighter", "virtual:8b1fb81bf4d8925caa7166bade594d6194c6d680562151271f799888ad4c431c9126207ec11daec1a63cb932499ccb15da3dfea0e0c4591a8a820a4b59399618#workspace:packages/riscv-highlighter"],\
-          ["@istrugatskiy/riscv-parser", "workspace:packages/riscv-parser"],\
+          ["@istrugatskiy/riscv-compiler", "workspace:packages/riscv-compiler"],\
           ["@istrugatskiy/riscv-vm", "workspace:packages/riscv-vm"],\
-          ["@lezer/common", "npm:1.2.3"],\
           ["@lezer/highlight", "npm:1.2.1"],\
           ["@parcel/config-default", "virtual:8b1fb81bf4d8925caa7166bade594d6194c6d680562151271f799888ad4c431c9126207ec11daec1a63cb932499ccb15da3dfea0e0c4591a8a820a4b59399618#npm:2.15.4"],\
           ["@parcel/core", "npm:2.15.4"],\
@@ -75,7 +68,7 @@ const RAW_RUNTIME_STATE =
           ["tailwindcss", "npm:4.1.12"],\
           ["typescript", "patch:typescript@npm%3A5.9.2#optional!builtin<compat/typescript>::version=5.9.2&hash=5786d5"],\
           ["typescript-eslint", "virtual:8b1fb81bf4d8925caa7166bade594d6194c6d680562151271f799888ad4c431c9126207ec11daec1a63cb932499ccb15da3dfea0e0c4591a8a820a4b59399618#npm:8.40.0"],\
-          ["vitest", "virtual:15201c13d46279534758b74724f1afe047eb2a2eda005f86fe4db5aff4afdf9836d785c1ced95f1b8102dd03b4d5ce3015ef37c8744dfef1cdc2013fa8570743#npm:3.2.4"],\
+          ["vitest", "virtual:87550e5fae7ca9acacc5bc64c3a249b9e7070a918bff8fed935b7bd80971a9b1145eda1f50e73d1e00068ce19fcd25d3c7d1c06869a7e9212a27e8c3a53808e0#npm:3.2.4"],\
           ["vm-browserify", "npm:1.1.2"]\
         ],\
         "linkType": "SOFT"\
@@ -652,45 +645,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
-    ["@istrugatskiy/riscv-highlighter", [\
-      ["virtual:8b1fb81bf4d8925caa7166bade594d6194c6d680562151271f799888ad4c431c9126207ec11daec1a63cb932499ccb15da3dfea0e0c4591a8a820a4b59399618#workspace:packages/riscv-highlighter", {\
-        "packageLocation": "./.yarn/__virtual__/@istrugatskiy-riscv-highlighter-virtual-cc8f24c051/1/packages/riscv-highlighter/",\
+    ["@istrugatskiy/riscv-compiler", [\
+      ["workspace:packages/riscv-compiler", {\
+        "packageLocation": "./packages/riscv-compiler/",\
         "packageDependencies": [\
-          ["@codemirror/language", "npm:6.11.3"],\
-          ["@istrugatskiy/riscv-highlighter", "virtual:8b1fb81bf4d8925caa7166bade594d6194c6d680562151271f799888ad4c431c9126207ec11daec1a63cb932499ccb15da3dfea0e0c4591a8a820a4b59399618#workspace:packages/riscv-highlighter"],\
-          ["@lezer/common", "npm:1.2.3"],\
+          ["@istrugatskiy/riscv-compiler", "workspace:packages/riscv-compiler"],\
+          ["@lezer/common", "npm:1.2.1"],\
           ["@lezer/generator", "npm:1.8.0"],\
-          ["@lezer/highlight", "npm:1.2.1"],\
           ["@lezer/lr", "npm:1.4.2"],\
-          ["@types/codemirror__language", null],\
-          ["vitest", "virtual:15201c13d46279534758b74724f1afe047eb2a2eda005f86fe4db5aff4afdf9836d785c1ced95f1b8102dd03b4d5ce3015ef37c8744dfef1cdc2013fa8570743#npm:3.2.4"]\
-        ],\
-        "packagePeers": [\
-          "@codemirror/language",\
-          "@types/codemirror__language"\
-        ],\
-        "linkType": "SOFT"\
-      }],\
-      ["workspace:packages/riscv-highlighter", {\
-        "packageLocation": "./packages/riscv-highlighter/",\
-        "packageDependencies": [\
-          ["@codemirror/language", "npm:6.11.3"],\
-          ["@istrugatskiy/riscv-highlighter", "workspace:packages/riscv-highlighter"],\
-          ["@lezer/common", "npm:1.2.3"],\
-          ["@lezer/generator", "npm:1.8.0"],\
-          ["@lezer/highlight", "npm:1.2.1"],\
-          ["@lezer/lr", "npm:1.4.2"],\
-          ["vitest", "virtual:15201c13d46279534758b74724f1afe047eb2a2eda005f86fe4db5aff4afdf9836d785c1ced95f1b8102dd03b4d5ce3015ef37c8744dfef1cdc2013fa8570743#npm:3.2.4"]\
-        ],\
-        "linkType": "SOFT"\
-      }]\
-    ]],\
-    ["@istrugatskiy/riscv-parser", [\
-      ["workspace:packages/riscv-parser", {\
-        "packageLocation": "./packages/riscv-parser/",\
-        "packageDependencies": [\
-          ["@istrugatskiy/riscv-parser", "workspace:packages/riscv-parser"],\
-          ["vitest", "virtual:15201c13d46279534758b74724f1afe047eb2a2eda005f86fe4db5aff4afdf9836d785c1ced95f1b8102dd03b4d5ce3015ef37c8744dfef1cdc2013fa8570743#npm:3.2.4"]\
+          ["vitest", "virtual:87550e5fae7ca9acacc5bc64c3a249b9e7070a918bff8fed935b7bd80971a9b1145eda1f50e73d1e00068ce19fcd25d3c7d1c06869a7e9212a27e8c3a53808e0#npm:3.2.4"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -699,9 +662,9 @@ const RAW_RUNTIME_STATE =
       ["workspace:packages/riscv-vm", {\
         "packageLocation": "./packages/riscv-vm/",\
         "packageDependencies": [\
-          ["@istrugatskiy/riscv-parser", "workspace:packages/riscv-parser"],\
+          ["@istrugatskiy/riscv-compiler", "workspace:packages/riscv-compiler"],\
           ["@istrugatskiy/riscv-vm", "workspace:packages/riscv-vm"],\
-          ["vitest", "virtual:15201c13d46279534758b74724f1afe047eb2a2eda005f86fe4db5aff4afdf9836d785c1ced95f1b8102dd03b4d5ce3015ef37c8744dfef1cdc2013fa8570743#npm:3.2.4"]\
+          ["vitest", "virtual:87550e5fae7ca9acacc5bc64c3a249b9e7070a918bff8fed935b7bd80971a9b1145eda1f50e73d1e00068ce19fcd25d3c7d1c06869a7e9212a27e8c3a53808e0#npm:3.2.4"]\
         ],\
         "linkType": "SOFT"\
       }]\
@@ -771,13 +734,6 @@ const RAW_RUNTIME_STATE =
           ["@lezer/common", "npm:1.2.1"]\
         ],\
         "linkType": "HARD"\
-      }],\
-      ["npm:1.2.3", {\
-        "packageLocation": "./.yarn/cache/@lezer-common-npm-1.2.3-ee9d05545d-fe9f8e1110.zip/node_modules/@lezer/common/",\
-        "packageDependencies": [\
-          ["@lezer/common", "npm:1.2.3"]\
-        ],\
-        "linkType": "HARD"\
       }]\
     ]],\
     ["@lezer/generator", [\
@@ -786,7 +742,7 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@lezer/common", "npm:1.2.1"],\
           ["@lezer/generator", "npm:1.8.0"],\
-          ["@lezer/lr", "npm:1.4.2"]\
+          ["@lezer/lr", "npm:1.4.3"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -807,6 +763,14 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@lezer/common", "npm:1.2.1"],\
           ["@lezer/lr", "npm:1.4.2"]\
+        ],\
+        "linkType": "HARD"\
+      }],\
+      ["npm:1.4.3", {\
+        "packageLocation": "./.yarn/cache/@lezer-lr-npm-1.4.3-f80541d8f0-3c9fd7eefb.zip/node_modules/@lezer/lr/",\
+        "packageDependencies": [\
+          ["@lezer/common", "npm:1.2.1"],\
+          ["@lezer/lr", "npm:1.4.3"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -3332,12 +3296,12 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:dd49b6ac13649c2943f90d7d10c0510229cdffcc4c2ebf10470bca0026c8998dc9b4df8b0070474724f8c2cbc47da9e0824090be372642cafd22ee4a60570dff#npm:3.2.4", {\
-        "packageLocation": "./.yarn/__virtual__/@vitest-mocker-virtual-c9c2fcd5c3/0/cache/@vitest-mocker-npm-3.2.4-48badb1f19-f7a4aea19b.zip/node_modules/@vitest/mocker/",\
+      ["virtual:607e5cf8802201ce67a1999495b0aa1bd2dae28906c3fb2688c6409b1a2b0127f97380ad6f1f4dbbc403fe3541d96752348bbdb92e4ad5838d93f6886e008646#npm:3.2.4", {\
+        "packageLocation": "./.yarn/__virtual__/@vitest-mocker-virtual-a378491f7b/0/cache/@vitest-mocker-npm-3.2.4-48badb1f19-f7a4aea19b.zip/node_modules/@vitest/mocker/",\
         "packageDependencies": [\
           ["@types/msw", null],\
           ["@types/vite", null],\
-          ["@vitest/mocker", "virtual:dd49b6ac13649c2943f90d7d10c0510229cdffcc4c2ebf10470bca0026c8998dc9b4df8b0070474724f8c2cbc47da9e0824090be372642cafd22ee4a60570dff#npm:3.2.4"],\
+          ["@vitest/mocker", "virtual:607e5cf8802201ce67a1999495b0aa1bd2dae28906c3fb2688c6409b1a2b0127f97380ad6f1f4dbbc403fe3541d96752348bbdb92e4ad5838d93f6886e008646#npm:3.2.4"],\
           ["@vitest/spy", "npm:3.2.4"],\
           ["estree-walker", "npm:3.0.3"],\
           ["magic-string", "npm:0.30.17"],\
@@ -6077,10 +6041,8 @@ const RAW_RUNTIME_STATE =
           ["@codemirror/language", "npm:6.11.3"],\
           ["@codemirror/lint", "npm:6.8.5"],\
           ["@eslint/js", "npm:9.33.0"],\
-          ["@istrugatskiy/riscv-highlighter", "virtual:8b1fb81bf4d8925caa7166bade594d6194c6d680562151271f799888ad4c431c9126207ec11daec1a63cb932499ccb15da3dfea0e0c4591a8a820a4b59399618#workspace:packages/riscv-highlighter"],\
-          ["@istrugatskiy/riscv-parser", "workspace:packages/riscv-parser"],\
+          ["@istrugatskiy/riscv-compiler", "workspace:packages/riscv-compiler"],\
           ["@istrugatskiy/riscv-vm", "workspace:packages/riscv-vm"],\
-          ["@lezer/common", "npm:1.2.3"],\
           ["@lezer/highlight", "npm:1.2.1"],\
           ["@parcel/config-default", "virtual:8b1fb81bf4d8925caa7166bade594d6194c6d680562151271f799888ad4c431c9126207ec11daec1a63cb932499ccb15da3dfea0e0c4591a8a820a4b59399618#npm:2.15.4"],\
           ["@parcel/core", "npm:2.15.4"],\
@@ -6104,7 +6066,7 @@ const RAW_RUNTIME_STATE =
           ["tailwindcss", "npm:4.1.12"],\
           ["typescript", "patch:typescript@npm%3A5.9.2#optional!builtin<compat/typescript>::version=5.9.2&hash=5786d5"],\
           ["typescript-eslint", "virtual:8b1fb81bf4d8925caa7166bade594d6194c6d680562151271f799888ad4c431c9126207ec11daec1a63cb932499ccb15da3dfea0e0c4591a8a820a4b59399618#npm:8.40.0"],\
-          ["vitest", "virtual:15201c13d46279534758b74724f1afe047eb2a2eda005f86fe4db5aff4afdf9836d785c1ced95f1b8102dd03b4d5ce3015ef37c8744dfef1cdc2013fa8570743#npm:3.2.4"],\
+          ["vitest", "virtual:87550e5fae7ca9acacc5bc64c3a249b9e7070a918bff8fed935b7bd80971a9b1145eda1f50e73d1e00068ce19fcd25d3c7d1c06869a7e9212a27e8c3a53808e0#npm:3.2.4"],\
           ["vm-browserify", "npm:1.1.2"]\
         ],\
         "linkType": "SOFT"\
@@ -6803,8 +6765,8 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:15201c13d46279534758b74724f1afe047eb2a2eda005f86fe4db5aff4afdf9836d785c1ced95f1b8102dd03b4d5ce3015ef37c8744dfef1cdc2013fa8570743#npm:3.2.4", {\
-        "packageLocation": "./.yarn/__virtual__/vitest-virtual-dd49b6ac13/0/cache/vitest-npm-3.2.4-7a07f931b1-5bf53ede3a.zip/node_modules/vitest/",\
+      ["virtual:87550e5fae7ca9acacc5bc64c3a249b9e7070a918bff8fed935b7bd80971a9b1145eda1f50e73d1e00068ce19fcd25d3c7d1c06869a7e9212a27e8c3a53808e0#npm:3.2.4", {\
+        "packageLocation": "./.yarn/__virtual__/vitest-virtual-607e5cf880/0/cache/vitest-npm-3.2.4-7a07f931b1-5bf53ede3a.zip/node_modules/vitest/",\
         "packageDependencies": [\
           ["@edge-runtime/vm", null],\
           ["@types/chai", "npm:5.2.2"],\
@@ -6817,7 +6779,7 @@ const RAW_RUNTIME_STATE =
           ["@types/vitest__ui", null],\
           ["@vitest/browser", null],\
           ["@vitest/expect", "npm:3.2.4"],\
-          ["@vitest/mocker", "virtual:dd49b6ac13649c2943f90d7d10c0510229cdffcc4c2ebf10470bca0026c8998dc9b4df8b0070474724f8c2cbc47da9e0824090be372642cafd22ee4a60570dff#npm:3.2.4"],\
+          ["@vitest/mocker", "virtual:607e5cf8802201ce67a1999495b0aa1bd2dae28906c3fb2688c6409b1a2b0127f97380ad6f1f4dbbc403fe3541d96752348bbdb92e4ad5838d93f6886e008646#npm:3.2.4"],\
           ["@vitest/pretty-format", "npm:3.2.4"],\
           ["@vitest/runner", "npm:3.2.4"],\
           ["@vitest/snapshot", "npm:3.2.4"],\
@@ -6840,7 +6802,7 @@ const RAW_RUNTIME_STATE =
           ["tinyrainbow", "npm:2.0.0"],\
           ["vite", "virtual:cb1d79df3b4901790c8808db427c397bd3f613c8181bce1e1c99f654fcf8f1484eb3efeaaa7477306f7c95ff2d882d1e762cb59fa3743be7fbfd628566f4b6c1#npm:7.1.3"],\
           ["vite-node", "npm:3.2.4"],\
-          ["vitest", "virtual:15201c13d46279534758b74724f1afe047eb2a2eda005f86fe4db5aff4afdf9836d785c1ced95f1b8102dd03b4d5ce3015ef37c8744dfef1cdc2013fa8570743#npm:3.2.4"],\
+          ["vitest", "virtual:87550e5fae7ca9acacc5bc64c3a249b9e7070a918bff8fed935b7bd80971a9b1145eda1f50e73d1e00068ce19fcd25d3c7d1c06869a7e9212a27e8c3a53808e0#npm:3.2.4"],\
           ["why-is-node-running", "npm:2.3.0"]\
         ],\
         "packagePeers": [\

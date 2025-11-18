@@ -30,6 +30,7 @@ import {
     string_of_def_macro,
 } from './lib_macro';
 import { pseudo_instructions } from './pseudo_macros';
+import { parser } from './ast/riscv';
 
 export const compile_riscv = bytecode_of_string.bind(undefined, [
     ...core_macros,
@@ -63,4 +64,5 @@ export {
     core_macros,
     mk_error_string,
     string_of_def_macro,
+    parser as riscv_parser,
 };

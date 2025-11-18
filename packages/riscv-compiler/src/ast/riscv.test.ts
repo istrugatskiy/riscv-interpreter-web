@@ -40,7 +40,8 @@ const string_of_code = (code: string) => {
 
 describe('RISC-V Parser', () => {
     it('Should not crash on some simple programs', () => {
-        const simple_prog = `addi x0, x0, x0`;
+        const simple_prog = `addi x0, x0, x0
+`;
         expect(strict_parser.parse(simple_prog));
 
         const parsed = string_of_code(`# Type your code here...
@@ -49,6 +50,10 @@ addi x1, x1, 1363
 # x1 = 3410 :)
 `);
         expect(parsed);
+
+        const tabbed_program = `addi    x0, x0, x0
+`;
+        expect(tabbed_program);
     });
 
     it('Should not crash on the GCD test program', () => {
@@ -111,9 +116,15 @@ add t1, t3, zero
 # Go to loop start:
 beq zero, zero, loop
 end:
-## expect[5] = 0x00000d52`;
+## expect[5] = 0x00000d52
+`;
         expect(strict_parser.parse(gcd_prog));
 
         console.log(string_of_code(gcd_prog));
+
+        const inline_label_test = `skibidi: addi x12, x12, 1
+`;
+        expect(strict_parser.parse(inline_label_test));
+        console.log(string_of_code(inline_label_test));
     });
 });

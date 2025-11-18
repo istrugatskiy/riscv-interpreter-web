@@ -1,6 +1,6 @@
 // Thanks chat gpt 4o :)
 import { describe, it, expect } from 'vitest';
-import { InterpreterError, compile_riscv } from './riscv';
+import { InterpreterError, compile_riscv } from './compiler';
 
 const is_error = (result: Program | InterpreterError[]) =>
     result.every((entry) => 'error_type' in entry);

@@ -1,5 +1,7 @@
-import { parse_file, RiscvIR, string_of_macro } from './parser';
 import { abi_map } from './register_abis';
+import { parser } from './ast/riscv';
+import { Tree } from '@lezer/common';
+import { children_of } from './ast/ast_utils';
 
 type ArgumentType =
     | { name: 'imm_register'; min: bigint; max: bigint }
@@ -139,11 +141,13 @@ Note: the interpreter may refuse to parse ambiguous immediates you may think are
     };
 };
 
-export const expand_code = (
-    { labels, code_lines }: RiscvIR,
+export const expand_ast = (
+    tree: Tree,
     macros: DefMacroExpr[]
 ): Program | InterpreterError[] => {
-    const instructions_with_errors = code_lines.map(
+    const statements = children_of(tree.topNode);
+
+    const instructions_with_errors = statements.map(
         (expr): InterpreterError | Program[0] => {
             const { args, code_line, string_rep } = expr;
 
@@ -255,18 +259,37 @@ export const expand_code = (
     return instructions_with_errors as Program;
 };
 
-export const bytecode_of_string = (
-    macros: ReturnType<typeof def_macro>[],
-    code: string
-) => {
-    const ir = parse_file(code);
-    // This check is a bit scuffed...
-    if (Array.isArray(ir)) {
-        return ir;
+export const bytecode_of_string = (macros: DefMacroExpr[], code: string) => {
+    const tree = parser.parse(code);
+    if (tree.length !== code.length) {
+        throw new Error('Internal parsing error in Lezer.');
     }
-    return expand_code(ir, macros);
+
+    const parsing_errors: { from: number; to: number }[] = [];
+    tree.iterate({
+        enter: ({ from, to, type }) => {
+            if (type.isError) {
+                parsing_errors.push({ from, to });
+            }
+            // If the type is an error,
+            // skip all children of the error so as to not duplicate messages.
+            return !type.isError;
+        },
+    });
+
+    if (parsing_errors.length) {
+        // TODO: give more specific error ranges
+        return parsing_errors.map(({ to }) => ({
+            error_type: 'Parser',
+            detailed_error_msg: 'Syntax Error',
+            line: code.substring(0, to).split('\n').length,
+            hint: 'You may be missing a newline at the end of your code',
+        })) as InterpreterError[];
+    }
+
+    return expand_ast(tree, macros);
 };
-/** Returns the list if it is valid, otherwise returns undefined if any element of list is undefined. */
+/** Returns the list if it contains no undefined entries, otherwise returns undefined. */
 const valid_list = <T extends unknown[]>(list: T) =>
     list.includes(undefined)
         ? undefined

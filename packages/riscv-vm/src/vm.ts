@@ -6,7 +6,7 @@ import {
     is_mem_type,
     is_r_type,
     is_u_type,
-} from '@istrugatskiy/riscv-parser';
+} from '/home/ilya/Desktop/code/html/riscv/packages/riscv-compiler';
 
 const uint64_t = BigInt.asUintN.bind(undefined, 64);
 const int64_t = BigInt.asIntN.bind(undefined, 64);

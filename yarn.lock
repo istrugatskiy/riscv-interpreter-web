@@ -55,7 +55,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@codemirror/language@npm:^6.0.0, @codemirror/language@npm:^6.10.3, @codemirror/language@npm:^6.11.3":
+"@codemirror/language@npm:^6.0.0, @codemirror/language@npm:^6.11.3":
   version: 6.11.3
   resolution: "@codemirror/language@npm:6.11.3"
   dependencies:
@@ -469,25 +469,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@istrugatskiy/riscv-highlighter@workspace:^, @istrugatskiy/riscv-highlighter@workspace:packages/riscv-highlighter":
+"@istrugatskiy/riscv-compiler@workspace:^, @istrugatskiy/riscv-compiler@workspace:packages/riscv-compiler":
   version: 0.0.0-use.local
-  resolution: "@istrugatskiy/riscv-highlighter@workspace:packages/riscv-highlighter"
+  resolution: "@istrugatskiy/riscv-compiler@workspace:packages/riscv-compiler"
   dependencies:
-    "@codemirror/language": "npm:^6.11.3"
-    "@lezer/common": "npm:^1.2.3"
+    "@lezer/common": "npm:1.2.1"
     "@lezer/generator": "npm:^1.8.0"
-    "@lezer/highlight": "npm:^1.2.1"
-    "@lezer/lr": "npm:^1.4.2"
-    vitest: "npm:^3.2.4"
-  peerDependencies:
-    "@codemirror/language": ">=6.0.0 <7.0.0"
-  languageName: unknown
-  linkType: soft
-
-"@istrugatskiy/riscv-parser@workspace:^, @istrugatskiy/riscv-parser@workspace:packages/riscv-parser":
-  version: 0.0.0-use.local
-  resolution: "@istrugatskiy/riscv-parser@workspace:packages/riscv-parser"
-  dependencies:
+    "@lezer/lr": "npm:1.4.2"
     vitest: "npm:^3.2.4"
   languageName: unknown
   linkType: soft
@@ -496,7 +484,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@istrugatskiy/riscv-vm@workspace:packages/riscv-vm"
   dependencies:
-    "@istrugatskiy/riscv-parser": "workspace:^"
+    "@istrugatskiy/riscv-compiler": "workspace:^"
     vitest: "npm:^3.2.4"
   languageName: unknown
   linkType: soft
@@ -552,17 +540,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lezer/common@npm:^1.0.0, @lezer/common@npm:^1.1.0":
+"@lezer/common@npm:1.2.1, @lezer/common@npm:^1.0.0, @lezer/common@npm:^1.1.0":
   version: 1.2.1
   resolution: "@lezer/common@npm:1.2.1"
   checksum: 10c0/af61436dc026f8deebaded13d8e1beea2ae307cbbfb270116cdedadb8208f0674da9c3b5963128a2b1cd4072b4e90bc8128133f4feaf31b6e801e4568f1a15a6
-  languageName: node
-  linkType: hard
-
-"@lezer/common@npm:^1.2.3":
-  version: 1.2.3
-  resolution: "@lezer/common@npm:1.2.3"
-  checksum: 10c0/fe9f8e111080ef94037a34ca2af1221c8d01c1763ba5ecf708a286185c76119509a5d19d924c8842172716716ddce22d7834394670c4a9432f0ba9f3b7c0f50d
   languageName: node
   linkType: hard
 
@@ -578,7 +559,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lezer/highlight@npm:^1.0.0, @lezer/highlight@npm:^1.2.1":
+"@lezer/highlight@npm:1.2.1, @lezer/highlight@npm:^1.0.0":
   version: 1.2.1
   resolution: "@lezer/highlight@npm:1.2.1"
   dependencies:
@@ -587,12 +568,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lezer/lr@npm:^1.0.0, @lezer/lr@npm:^1.3.0, @lezer/lr@npm:^1.4.2":
+"@lezer/lr@npm:1.4.2, @lezer/lr@npm:^1.0.0":
   version: 1.4.2
   resolution: "@lezer/lr@npm:1.4.2"
   dependencies:
     "@lezer/common": "npm:^1.0.0"
   checksum: 10c0/22bb5d0d4b33d0de5eb0706b7e5b5f2d20f570e112d9110009bd35b62ff10f2eb4eff8da4cf373dd4ddf5e06a304120b8f039add7ed9997c981c13945d5329cd
+  languageName: node
+  linkType: hard
+
+"@lezer/lr@npm:^1.3.0":
+  version: 1.4.3
+  resolution: "@lezer/lr@npm:1.4.3"
+  dependencies:
+    "@lezer/common": "npm:^1.0.0"
+  checksum: 10c0/3c9fd7eefb0641addfdd0955b4c4014bb8702285c52890b58c937d766320ba2fec8c6b374b46f514079a093c9dd21b6632746a01fed16c250c90d649e5dd12c1
   languageName: node
   linkType: hard
 
@@ -5206,14 +5196,12 @@ __metadata:
   dependencies:
     "@babel/runtime": "npm:^7.28.3"
     "@codemirror/autocomplete": "npm:^6.18.7"
-    "@codemirror/language": "npm:^6.10.3"
+    "@codemirror/language": "npm:^6.11.3"
     "@codemirror/lint": "npm:^6.8.5"
     "@eslint/js": "npm:^9.33.0"
-    "@istrugatskiy/riscv-highlighter": "workspace:^"
-    "@istrugatskiy/riscv-parser": "workspace:^"
+    "@istrugatskiy/riscv-compiler": "workspace:^"
     "@istrugatskiy/riscv-vm": "workspace:^"
-    "@lezer/common": "npm:^1.2.3"
-    "@lezer/highlight": "npm:^1.2.1"
+    "@lezer/highlight": "npm:1.2.1"
     "@parcel/config-default": "npm:^2.15.4"
     "@parcel/core": "npm:^2.15.4"
     "@tailwindcss/postcss": "npm:^4.1.12"

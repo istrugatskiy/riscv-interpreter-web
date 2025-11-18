@@ -2,7 +2,6 @@
 import { basicSetup, EditorView } from 'codemirror';
 import { materialDark } from '@uiw/codemirror-theme-material';
 
-import { riscv } from '@istrugatskiy/riscv-highlighter';
 import { VirtualMachine } from '@istrugatskiy/riscv-vm';
 import {
     compile_riscv,
@@ -11,15 +10,17 @@ import {
     mk_error_string,
     pseudo_instructions,
     string_of_def_macro,
-} from '@istrugatskiy/riscv-parser';
-import { log_error, log_msg } from './log_manager';
+} from '../packages/riscv-compiler/src/compiler';
+import { log_error, log_msg } from './logger';
 import { linter } from '@codemirror/lint';
 import {
     autocompletion,
     completeFromList,
     snippetCompletion,
 } from '@codemirror/autocomplete';
-import { abi_map } from '@istrugatskiy/riscv-parser/src/register_abis';
+import { abi_map } from '../packages/riscv-compiler/src/register_abis';
+import { LanguageSupport } from '@codemirror/language';
+import { riscv_language } from './riscv_language';
 /**
  * Sleeps for a given amount of time the current "thread".
  * @param ms - The amount of time to sleep in milliseconds.
@@ -238,14 +239,13 @@ addi x1, x1, 1363
                 }
             )
     );
-    const riscv_language = riscv().language;
 
     const editor = new EditorView({
         doc: saved_code,
         extensions: [
             basicSetup,
             materialDark,
-            riscv_language,
+            new LanguageSupport(riscv_language).language,
             autocompletion({
                 override: [
                     completeFromList([
