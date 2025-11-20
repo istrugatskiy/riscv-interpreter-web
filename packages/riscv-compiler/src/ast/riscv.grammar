@@ -6,7 +6,7 @@ Program { ((space* newline) | Statement)* }
 @skip { Comment }
 
 Statement {
-  (space* (LabelDef ":" space* | MacroExpr | (LabelDef ":" space+ MacroExpr)) newline)
+  (space* (LabelDef ":" space* | MacroExpr | (LabelDef ":" space* MacroExpr)) newline)
 }
 
 LabelDef {

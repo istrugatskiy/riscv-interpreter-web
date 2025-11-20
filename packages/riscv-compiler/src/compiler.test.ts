@@ -47,6 +47,7 @@ describe('compile_riscv', () => {
                 name: 'jal',
                 rd: 0,
                 imm: 0n,
+                inst_type: 5,
             });
         }
     });
@@ -64,12 +65,14 @@ describe('compile_riscv', () => {
                 rd: 1,
                 rs1: 2,
                 rs2: 3,
+                inst_type: 0,
             });
             expect(flatten_bytecode(result)[1]).toEqual({
                 name: 'lw',
                 rd: 4,
                 rs1: 5,
                 imm: 4n,
+                inst_type: 2,
             });
         }
     });
@@ -95,12 +98,14 @@ describe('compile_riscv', () => {
                 rd: 1,
                 rs1: 2,
                 imm: 100n,
+                inst_type: 1,
             });
             expect(flatten_bytecode(result)[1]).toEqual({
                 name: 'slli',
                 rd: 3,
                 rs1: 4,
                 imm: 2n,
+                inst_type: 1,
             });
         }
     });
@@ -141,12 +146,14 @@ describe('compile_riscv', () => {
                 rs1: 1,
                 rs2: 2,
                 imm: 4n,
+                inst_type: 4,
             });
             expect(flatten_bytecode(result)[1]).toEqual({
                 name: 'bne',
                 rs1: 3,
                 rs2: 4,
                 imm: 8n,
+                inst_type: 4,
             });
         }
     });
@@ -182,12 +189,14 @@ describe('compile_riscv', () => {
                 rd: 1,
                 rs1: 2,
                 imm: 0n,
+                inst_type: 1,
             });
             expect(flatten_bytecode(result)[1]).toEqual({
                 name: 'xori',
                 rd: 3,
                 rs1: 4,
                 imm: -1n,
+                inst_type: 1,
             });
         }
     });

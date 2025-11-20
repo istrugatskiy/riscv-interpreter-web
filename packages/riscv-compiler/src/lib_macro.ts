@@ -326,7 +326,7 @@ export const bytecode_of_string = (macros: DefMacroExpr[], code: string) => {
             detailed_error_msg: 'Syntax Error',
             from,
             to,
-            hint: 'You may be missing a newline at the end of your code',
+            hint: 'Your code should look like the following: LabelDef ":" space* | MacroExpr | (LabelDef ":" space* MacroExpr)',
         })) as InterpreterError[];
     }
 
