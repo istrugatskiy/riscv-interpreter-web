@@ -14,7 +14,7 @@ LabelDef {
 }
 
 MacroExpr {
-  MacroName (space+ ArgList)? space*
+  (MacroName space*) | (MacroName space+ ArgList space*)
 }
 
 ArgList {
@@ -35,7 +35,7 @@ argument {
 }
 
 @tokens {
-  space { $[ \t\n\r]+ }
+  space { $[ \t] }
   Comment { "#" ![\n\r]* }
   newline { ("\n" | "\r\n" | "\r") }
 
