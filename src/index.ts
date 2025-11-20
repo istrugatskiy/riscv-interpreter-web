@@ -188,30 +188,14 @@ addi x1, x1, 1363
 # x1 = 3410 :)`;
     update_mem_view(undefined);
     append_register_rows(document.getElementById('registers'));
-    const get_line_range = (line_no: number, code: string) => {
-        let from = 0,
-            current_line = 0;
 
-        for (let i = 0; i < code.length; i++) {
-            const ch = code.charAt(i);
-
-            if (current_line === line_no && ch === '\n') {
-                return { from, to: i };
-            } else if (ch === '\n') {
-                current_line++;
-                from = i + 1;
-            }
-        }
-
-        return { from, to: code.length };
-    };
     const riscv_linter = linter((view) => {
         const code = view.state.doc.toString();
         const compiled_code = compile_riscv(code);
         if (compiled_code.every((item) => 'error_type' in item)) {
             return compiled_code.map((error) => ({
                 severity: 'error',
-                ...get_line_range(error.line - 1, code),
+                ...error,
                 message: mk_error_string(error),
             }));
         }
@@ -231,9 +215,9 @@ addi x1, x1, 1363
     const macro_completions = [...core_macros, ...pseudo_instructions].map(
         (macro) =>
             snippetCompletion(
-                `${macro.name} ${macro.arglist_type.map(({ name }, arg_idx) => (name !== 'imm_register' ? `#{${name}${arg_idx.toString()}}` : `#{imm${arg_idx.toString()}}(#{reg${arg_idx.toString()}})`)).join(', ')}`.trim(),
+                `${macro.name} ${macro.arglist_type.map(({ name }, arg_idx) => (name !== 'ImmRegister' ? `#{${name}${arg_idx.toString()}}` : `#{imm${arg_idx.toString()}}(#{reg${arg_idx.toString()}})`)).join(', ')}`.trim(),
                 {
-                    label: `${macro.name} ${macro.arglist_type.map(({ name }) => (name !== 'imm_register' ? name : 'imm(reg)')).join(', ')}`.trim(),
+                    label: `${macro.name} ${macro.arglist_type.map(({ name }) => (name !== 'ImmRegister' ? name : 'imm(reg)')).join(', ')}`.trim(),
                     detail: `: ${string_of_def_macro(macro)} (${(core_macros as DefMacroExpr[]).includes(macro) ? 'Core' : 'Pseudo'})`,
                     type: 'MacroName',
                 }

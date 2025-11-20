@@ -1,11 +1,5 @@
-import {
-    bytecode_of_string,
-    def_macro,
-    imm_reg_type,
-    imm_type,
-    label_type,
-    reg_type,
-} from './lib_macro';
+import { imm_reg_type, imm_type, label_type, reg_type } from './arguments';
+import { bytecode_of_string, def_macro } from './lib_macro';
 
 export const r_names = [
     'and',

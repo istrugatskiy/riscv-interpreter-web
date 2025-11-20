@@ -1,11 +1,6 @@
-import {
-    def_macro,
-    imm_reg_type,
-    imm_type,
-    label_type,
-    reg_type,
-} from './lib_macro';
+import { def_macro } from './lib_macro';
 import { coret } from './core_macros';
+import { imm_reg_type, imm_type, label_type, reg_type } from './arguments';
 
 export const pseudo_instructions = [
     def_macro(
