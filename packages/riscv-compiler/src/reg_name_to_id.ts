@@ -42,7 +42,7 @@ const abis = [
     (map, val, idx) => map.set(val, idx),
     new Map<string, number>()
 ) as ReadonlyMap<string, number>;
-export const abi_map = new Map([...abis, ...defs]).set('fp', 8) as ReadonlyMap<
-    string,
-    IntRange<0, 32>
->;
+export const reg_name_to_id = new Map([...abis, ...defs]).set(
+    'fp',
+    8
+) as ReadonlyMap<string, IntRange<0, 32>>;

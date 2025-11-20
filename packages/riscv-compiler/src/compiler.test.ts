@@ -1,8 +1,9 @@
 // Thanks chat gpt 4o :)
 import { describe, it, expect } from 'vitest';
-import { InterpreterError, compile_riscv } from './compiler';
+import { compile_riscv } from './compiler';
+import { type CompilerError } from './compiler_errors';
 
-const is_error = (result: Program | InterpreterError[]) =>
+const is_error = (result: Program | CompilerError[]) =>
     result.every((entry) => 'error_type' in entry);
 
 const flatten_bytecode = (program: Program) =>

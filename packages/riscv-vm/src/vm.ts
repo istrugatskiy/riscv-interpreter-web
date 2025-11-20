@@ -1,12 +1,10 @@
-import {
-    is_b_type,
-    is_i_type,
-    is_j_type,
-    is_m_type,
-    is_mem_type,
-    is_r_type,
-    is_u_type,
-} from '@istrugatskiy/riscv-compiler';
+const is_r_type = (inst: Instruction) => inst.inst_type == 0;
+const is_i_type = (inst: Instruction) => inst.inst_type == 1;
+const is_mem_type = (inst: Instruction) => inst.inst_type == 2;
+const is_u_type = (inst: Instruction) => inst.inst_type == 3;
+const is_b_type = (inst: Instruction) => inst.inst_type == 4;
+const is_j_type = (inst: Instruction) => inst.inst_type == 5;
+const is_m_type = (inst: Instruction) => inst.inst_type == 6;
 
 const uint64_t = BigInt.asUintN.bind(undefined, 64);
 const int64_t = BigInt.asIntN.bind(undefined, 64);

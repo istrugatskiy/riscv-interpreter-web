@@ -12,36 +12,13 @@ import {
     string_of_argument_type,
     ValidArgumentShapes,
 } from './arguments';
+import { type CompilerError } from './compiler_errors';
 
 type ValidArgumentsOf<Arg extends ArgumentType[]> = {
     [Index in keyof Arg]: ValidArgumentShapes[Arg[Index]['name']];
 };
 
-export type InterpreterError = {
-    error_type:
-        | 'UnboundMacro'
-        | 'Parser'
-        | 'UnexpectedArgumentCount'
-        | 'UnexpectedArgument'
-        | 'AmbiguousMacroExpr';
-    detailed_error_msg: string;
-    from: number;
-    to: number;
-    hint: string;
-};
-
 export type DefMacroExpr = ReturnType<typeof def_macro>;
-
-export const mk_error_string = ({
-    error_type,
-    detailed_error_msg,
-    from,
-    to,
-    hint,
-}: InterpreterError) =>
-    `** (${error_type}Error) **
-${detailed_error_msg} @ range (${from.toString()},${to.toString()})!
-Hint: ${hint}`;
 
 export const string_of_def_macro = ({
     name,
@@ -70,7 +47,7 @@ export const def_macro = <ArgumentList extends ArgumentType[]>(
             source: string,
             argument_list: SyntaxNode[],
             label_context: Map<string, number>
-        ): Instruction[] | InterpreterError[] => {
+        ): Instruction[] | CompilerError[] => {
             if (argument_list.length !== arglist_type.length) {
                 const first_arg = argument_list.at(0);
                 const last_arg = argument_list.at(-1);
@@ -156,7 +133,7 @@ export const expand_ast = (
     tree: Tree,
     source: string,
     macros: DefMacroExpr[]
-): Program | InterpreterError[] => {
+): Program | CompilerError[] => {
     const source_map = source_map_from_tree(tree, source);
     const labels = label_table_from_tree(tree, source);
     const macro_expressions_with_source = tree.topNode
@@ -191,11 +168,7 @@ export const expand_ast = (
     const node_val = get_node_text.bind(undefined, source);
 
     const instructions_with_errors = macro_expressions_with_source.map(
-        ({
-            macro_expr,
-            string_rep,
-            line_no,
-        }): InterpreterError[] | Program[0] => {
+        ({ macro_expr, string_rep, line_no }): CompilerError[] | Program[0] => {
             const macro_name_node = macro_expr.getChild('MacroName');
             if (macro_name_node === null) {
                 throw new Error('Macro expression has no macro name.');
@@ -269,14 +242,14 @@ export const expand_ast = (
                         source,
                         macro_args,
                         labels
-                    ) as InterpreterError[];
+                    ) as CompilerError[];
                 }
                 return correct_name_macros[0]?.try_expand(
                     macro_expr,
                     source,
                     macro_args,
                     labels
-                ) as InterpreterError[];
+                ) as CompilerError[];
             }
 
             return {
@@ -327,7 +300,7 @@ export const bytecode_of_string = (macros: DefMacroExpr[], code: string) => {
             from,
             to,
             hint: 'Your code should look like the following: LabelDef ":" space* | MacroExpr | (LabelDef ":" space* MacroExpr)',
-        })) as InterpreterError[];
+        })) as CompilerError[];
     }
 
     return expand_ast(tree, code, macros);

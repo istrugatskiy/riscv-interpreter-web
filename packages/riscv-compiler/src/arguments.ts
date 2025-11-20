@@ -2,9 +2,10 @@
  * This module includes utilities for parsing string arguments
  */
 import { SyntaxNode } from '@lezer/common';
-import { abi_map } from './register_abis';
-import { type InterpreterError, string_of_def_macro } from './lib_macro';
+import { reg_name_to_id } from './reg_name_to_id';
+import { string_of_def_macro } from './lib_macro';
 import { get_node_text } from './ast/ast_utils';
+import { CompilerError } from './compiler_errors';
 
 export type ValidArgumentShapes = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -121,7 +122,7 @@ const immediate_or_label = (
 };
 
 const register = (reg: string | undefined): IntRange<0, 32> | undefined =>
-    reg === undefined ? undefined : abi_map.get(reg.toLowerCase());
+    reg === undefined ? undefined : reg_name_to_id.get(reg.toLowerCase());
 
 export const parse_arg = ({
     type,
@@ -138,7 +139,7 @@ export const parse_arg = ({
         name: string;
         arglist_type: ArgumentType[];
     };
-}): ValidArgumentShapes[keyof ValidArgumentShapes] | InterpreterError => {
+}): ValidArgumentShapes[keyof ValidArgumentShapes] | CompilerError => {
     const arg_text = get_node_text(source, argument);
 
     const partial_error_msg = {

@@ -7,10 +7,11 @@ import {
     compile_riscv,
     core_macros,
     DefMacroExpr,
-    mk_error_string,
     pseudo_instructions,
     string_of_def_macro,
-} from '../packages/riscv-compiler/src/compiler';
+    string_of_compiler_error,
+    reg_name_to_id,
+} from '@istrugatskiy/riscv-compiler';
 import { log_error, log_msg } from './logger';
 import { linter } from '@codemirror/lint';
 import {
@@ -18,7 +19,6 @@ import {
     completeFromList,
     snippetCompletion,
 } from '@codemirror/autocomplete';
-import { abi_map } from '../packages/riscv-compiler/src/register_abis';
 import { LanguageSupport } from '@codemirror/language';
 import { riscv_language } from './riscv_language';
 /**
@@ -196,13 +196,13 @@ addi x1, x1, 1363
             return compiled_code.map((error) => ({
                 severity: 'error',
                 ...error,
-                message: mk_error_string(error),
+                message: string_of_compiler_error(error),
             }));
         }
         return [];
     });
 
-    const reg_completions = Array.from(abi_map.entries()).map(
+    const reg_completions = Array.from(reg_name_to_id.entries()).map(
         ([reg_name, reg_num]) => ({
             label: reg_name,
             detail: 'Register',
@@ -274,7 +274,7 @@ addi x1, x1, 1363
                     const prog = compile_riscv(editor.state.doc.toString());
                     if (prog.every((el) => 'error_type' in el)) {
                         prog.forEach((error) => {
-                            mk_error_string(error)
+                            string_of_compiler_error(error)
                                 .split('\n')
                                 .forEach((line) => {
                                     log_error(line);
