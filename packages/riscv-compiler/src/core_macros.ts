@@ -1,7 +1,7 @@
 import { imm_reg_type, imm_type, label_type, reg_type } from './arguments';
 import { bytecode_of_string, def_macro } from './lib_macro';
 
-export const r_names = [
+const r_names = [
     'and',
     'add',
     'sub',
@@ -18,7 +18,7 @@ export const r_names = [
     'subw',
     'sraw',
 ] as const;
-const r_type = r_names.map((name) =>
+export const r_type = r_names.map((name) =>
     def_macro(
         name,
         [reg_type, reg_type, reg_type] as const,
@@ -35,7 +35,7 @@ const r_type = r_names.map((name) =>
 );
 
 // TODO: fix bad shift types (you can't shift by more than 63!!!)
-export const i_names = [
+const i_names = [
     'addi',
     'andi',
     'ori',
@@ -50,7 +50,7 @@ export const i_names = [
     'srai',
     'sraiw',
 ] as const;
-const i_type = i_names.map((name) =>
+export const i_type = i_names.map((name) =>
     def_macro(
         name,
         [reg_type, reg_type, imm_type(-2048n, 2047n)] as const,
@@ -58,17 +58,8 @@ const i_type = i_names.map((name) =>
     )
 );
 
-export const mem_names = [
-    'lb',
-    'lh',
-    'lw',
-    'ld',
-    'sb',
-    'sh',
-    'sw',
-    'sd',
-] as const;
-const mem_type = mem_names.map((name) =>
+const mem_names = ['lb', 'lh', 'lw', 'ld', 'sb', 'sh', 'sw', 'sd'] as const;
+export const mem_type = mem_names.map((name) =>
     def_macro(
         name,
         [reg_type, imm_reg_type(-2048n, 2047n)] as const,
@@ -76,8 +67,8 @@ const mem_type = mem_names.map((name) =>
     )
 );
 
-export const u_names = ['lui', 'auipc'] as const;
-const u_type = u_names.map((name) =>
+const u_names = ['lui', 'auipc'] as const;
+export const u_type = u_names.map((name) =>
     def_macro(
         name,
         [reg_type, imm_type(0n, 0xfffffn)] as const,
@@ -85,8 +76,8 @@ const u_type = u_names.map((name) =>
     )
 );
 
-export const b_names = ['beq', 'bne', 'blt', 'bltu', 'bge', 'bgeu'] as const;
-const b_type = b_names.map((name) =>
+const b_names = ['beq', 'bne', 'blt', 'bltu', 'bge', 'bgeu'] as const;
+export const b_type = b_names.map((name) =>
     def_macro(
         name,
         [reg_type, reg_type, label_type] as const,
@@ -94,7 +85,7 @@ const b_type = b_names.map((name) =>
     )
 );
 
-const j_type = [
+export const j_type = [
     def_macro('jal', [reg_type, label_type] as const, ([rd, imm]) => [
         { name: 'jal', rd, imm, inst_type: 5 },
     ]),
@@ -105,7 +96,7 @@ const j_type = [
     ),
 ];
 
-export const m_names = [
+const m_names = [
     'mul',
     'mulh',
     'mulhu',
@@ -120,7 +111,7 @@ export const m_names = [
     'remw',
     'remuw',
 ] as const;
-const m_type = m_names.map((name) =>
+export const mul_type = m_names.map((name) =>
     def_macro(
         name,
         [reg_type, reg_type, reg_type] as const,
@@ -143,18 +134,17 @@ export const core_macros = [
     u_type,
     b_type,
     j_type,
-    m_type,
+    mul_type,
 ].flat();
-
-export const core = bytecode_of_string.bind(undefined, core_macros);
 
 // Oh wow, its template tag literal o'clock. :)))))))))
 // Thx stackoverflow: https://stackoverflow.com/questions/68152638/what-is-the-default-tag-function-for-template-literals
-export const coret = (
+export const core_compiler = (
     parts: TemplateStringsArray,
     ...values: (number | string | bigint)[]
 ): Instruction[] => {
-    const prog = core(
+    const prog = bytecode_of_string(
+        core_macros,
         parts
             .flatMap((part, i) =>
                 i < values.length

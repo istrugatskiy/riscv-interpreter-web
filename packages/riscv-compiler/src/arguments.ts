@@ -44,7 +44,6 @@ export const imm_reg_type = (min: bigint, max: bigint) =>
         max,
     }) as { name: 'ImmRegister'; min: bigint; max: bigint };
 
-// Exported only for testing
 export const immediate = (
     imm: string | undefined,
     min: bigint,
@@ -85,7 +84,7 @@ export const immediate = (
     return value;
 };
 
-const immediate_or_label = (
+export const immediate_or_label = (
     imm_label: string | undefined,
     min: bigint,
     max: bigint,
@@ -121,7 +120,9 @@ const immediate_or_label = (
     return imm;
 };
 
-const register = (reg: string | undefined): IntRange<0, 32> | undefined =>
+export const register = (
+    reg: string | undefined
+): IntRange<0, 32> | undefined =>
     reg === undefined ? undefined : reg_name_to_id.get(reg.toLowerCase());
 
 export const parse_arg = ({

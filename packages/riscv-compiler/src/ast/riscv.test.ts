@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { parser } from './riscv';
-import { string_of_code } from './ast_utils';
+import { string_of_ast } from './ast_utils';
 
 const strict_parser = parser.configure({ strict: true });
 
@@ -10,7 +10,7 @@ describe('RISC-V Parser', () => {
 `;
         expect(strict_parser.parse(simple_prog));
 
-        const parsed = string_of_code(`# Type your code here...
+        const parsed = string_of_ast(`# Type your code here...
 addi x1, x0, 2047
 test:
 addi x1, x1, 1363

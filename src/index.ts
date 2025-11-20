@@ -7,7 +7,7 @@ import {
     compile_riscv,
     core_macros,
     DefMacroExpr,
-    pseudo_instructions,
+    pseudo_macros,
     string_of_def_macro,
     string_of_compiler_error,
     reg_name_to_id,
@@ -212,16 +212,15 @@ addi x1, x1, 1363
                 : { info: `(x${reg_num.toString()})` }),
         })
     );
-    const macro_completions = [...core_macros, ...pseudo_instructions].map(
-        (macro) =>
-            snippetCompletion(
-                `${macro.name} ${macro.arglist_type.map(({ name }, arg_idx) => (name !== 'ImmRegister' ? `#{${name}${arg_idx.toString()}}` : `#{imm${arg_idx.toString()}}(#{reg${arg_idx.toString()}})`)).join(', ')}`.trim(),
-                {
-                    label: `${macro.name} ${macro.arglist_type.map(({ name }) => (name !== 'ImmRegister' ? name : 'imm(reg)')).join(', ')}`.trim(),
-                    detail: `: ${string_of_def_macro(macro)} (${(core_macros as DefMacroExpr[]).includes(macro) ? 'Core' : 'Pseudo'})`,
-                    type: 'MacroName',
-                }
-            )
+    const macro_completions = [...core_macros, ...pseudo_macros].map((macro) =>
+        snippetCompletion(
+            `${macro.name} ${macro.arglist_type.map(({ name }, arg_idx) => (name !== 'ImmRegister' ? `#{${name}${arg_idx.toString()}}` : `#{imm${arg_idx.toString()}}(#{reg${arg_idx.toString()}})`)).join(', ')}`.trim(),
+            {
+                label: `${macro.name} ${macro.arglist_type.map(({ name }) => (name !== 'ImmRegister' ? name : 'imm(reg)')).join(', ')}`.trim(),
+                detail: `: ${string_of_def_macro(macro)} (${(core_macros as DefMacroExpr[]).includes(macro) ? 'Core' : 'Pseudo'})`,
+                type: 'MacroName',
+            }
+        )
     );
 
     const editor = new EditorView({

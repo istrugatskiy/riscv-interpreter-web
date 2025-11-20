@@ -1,7 +1,10 @@
 import { SyntaxNode, Tree } from '@lezer/common';
 import { parser } from './riscv';
 
-export const string_of_code = (code: string) => {
+/**
+ * Takes a string containing RISC-V code and returns a string representation of the code's AST.
+ */
+export const string_of_ast = (code: string) => {
     // Return a string representation of the node.
 
     const traverse_tree = (node: SyntaxNode, indentation: number) => {
@@ -24,8 +27,9 @@ export const string_of_code = (code: string) => {
     const top_node = parser.parse(code).topNode;
     return traverse_tree(top_node, 0);
 };
+
 /**
- * Get the children of a lezer syntax node.
+ * Gets the children of a lezer syntax node.
  */
 export const children_of_node = (node: SyntaxNode) => {
     const cur = node.cursor();
@@ -42,13 +46,11 @@ export const children_of_node = (node: SyntaxNode) => {
 };
 
 /**
- * Gets the string value of a syntax node given source code.
+ * Gets the string value of a syntax node given the source code.
  */
 export const get_node_text = (source: string, node: SyntaxNode | null) => {
     if (node === null) {
-        throw new Error(
-            'The SyntaxNode does not exist, this is a bug in the AST generator or compiler.'
-        );
+        throw new Error('get_node_text() failed because the node was null.');
     }
     return source.substring(node.from, node.to);
 };
@@ -80,7 +82,8 @@ export const source_map_from_tree = (tree: Tree, source: string) => {
 };
 
 /**
- * This function creates a map label => index of the statement in the AST assuming the AST had no labels.
+ * Suppose we had a tree an array of pure MacroExpressions.
+ * This function creates a mapping from each label name to a corresponding macro expression that should be executed after the label.
  */
 export const label_table_from_tree = (tree: Tree, source: string) => {
     const statements = tree.topNode.getChildren('Statement');
