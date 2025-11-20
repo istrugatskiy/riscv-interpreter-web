@@ -1,24 +1,20 @@
-@precedence {
-    argument @left
-}
+@precedence { argument @left }
 
 @top
-Program { Statement* }
+Program { ((space* newline) | Statement)* }
+
+@skip { Comment }
 
 Statement {
-  (space* inline_statement? Comment? newline) | (space* inline_statement Comment? eof) | (space* Comment eof)
-}
-
-inline_statement {
-  (LabelDef | MacroExpr | (LabelDef space+ MacroExpr))
+  (space* (LabelDef ":" space* | MacroExpr | (LabelDef ":" space* MacroExpr)) newline)
 }
 
 LabelDef {
-  LabelName ":"
+  name 
 }
 
 MacroExpr {
-  MacroName space+ ArgList?
+  (MacroName space*) | (MacroName space+ ArgList space*)
 }
 
 ArgList {
@@ -39,12 +35,11 @@ argument {
 }
 
 @tokens {
-  eof { space* @eof }
-  space { $[ \t\n\r]+ }
+  space { $[ \t] }
   Comment { "#" ![\n\r]* }
-  newline { space* ("\n" | "\r\n" | "\r") }
+  newline { ("\n" | "\r\n" | "\r") }
 
-  name { $[A-Za-z._+\-] $[A-Za-z0-9._+\-]* }
+  name { $[A-Za-z._$] $[A-Za-z0-9._$]* }
 
   Register {
     "x0"|"x1"|"x2"|"x3"|"x4"|"x5"|"x6"|"x7"|"x8"|"x9"|"x10"|"x11"|"x12"|"x13"|"x14"|"x15"|
@@ -60,7 +55,5 @@ argument {
          | $[0-9]+ )
   }
   
-
-
-  @precedence { Register, Immediate, name, Comment, newline, eof, space }
+  @precedence { Register, Immediate, name, Comment, newline, space }
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { immediate } from './lib_macro';
+import { immediate } from './arguments';
 
 // Thanks Chatgpt for converting Peter's comment into a test-case :thumbs:
 describe('immediate', () => {

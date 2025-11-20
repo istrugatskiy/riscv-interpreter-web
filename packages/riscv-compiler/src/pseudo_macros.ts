@@ -1,11 +1,6 @@
-import {
-    def_macro,
-    imm_reg_type,
-    imm_type,
-    label_type,
-    reg_type,
-} from './lib_macro';
+import { def_macro } from './lib_macro';
 import { coret } from './core_macros';
+import { imm_reg_type, imm_type, label_type, reg_type } from './arguments';
 
 export const pseudo_instructions = [
     def_macro(
@@ -124,6 +119,8 @@ export const pseudo_instructions = [
         'li',
         [reg_type, imm_type(-(2n ** 63n), 2n ** 63n - 1n)] as const,
         // Kinda cheating the system...
-        ([rd, imm]) => [{ name: 'addi', rd, rs1: 0 as Register, imm }]
+        ([rd, imm]) => [
+            { name: 'addi', rd, rs1: 0 as Register, imm, inst_type: 1 },
+        ]
     ),
 ];

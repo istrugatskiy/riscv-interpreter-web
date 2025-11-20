@@ -1,0 +1,26 @@
+{
+    "name": "@istrugatskiy/riscv-compiler",
+    "packageManager": "yarn@4.4.1",
+    "private": true,
+    "type": "module",
+    "module": "src/compiler.ts",
+    "license": "CC0-1.0",
+    "main": "src/compiler.ts",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/istrugatskiy/riscv-interpreter-web.git",
+        "directory": "packages/riscv-compiler"
+    },
+    "devDependencies": {
+        "@lezer/generator": "^1.8.0",
+        "vitest": "^3.2.4"
+    },
+    "scripts": {
+        "test": "vitest",
+        "mkgrammar": "yarn run lezer-generator ./src/ast/riscv.grammar -o ./src/ast/riscv.js"
+    },
+    "dependencies": {
+        "@lezer/common": "1.2.1",
+        "@lezer/lr": "1.4.2"
+    }
+}

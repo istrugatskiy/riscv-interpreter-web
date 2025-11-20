@@ -6,7 +6,7 @@ import {
     is_mem_type,
     is_r_type,
     is_u_type,
-} from '@istrugatskiy/riscv-parser';
+} from '@istrugatskiy/riscv-compiler';
 
 const uint64_t = BigInt.asUintN.bind(undefined, 64);
 const int64_t = BigInt.asIntN.bind(undefined, 64);
@@ -316,6 +316,7 @@ See the JS console for more info.`);
             if (name === 'jal') {
                 // Just in case :)
                 return int64_t(imm);
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             } else if (name === 'jalr') {
                 const right = this.#registers[inst.rs1];
                 const result = int64_t((imm + right) & ~1n);

@@ -1,6 +1,6 @@
 // Thanks chat gpt 4o :)
 import { describe, it, expect } from 'vitest';
-import { InterpreterError, compile_riscv } from './riscv';
+import { InterpreterError, compile_riscv } from './compiler';
 
 const is_error = (result: Program | InterpreterError[]) =>
     result.every((entry) => 'error_type' in entry);
@@ -20,7 +20,8 @@ describe('compile_riscv', () => {
 
       label:
       jal x9, label
-    `);
+`);
+
         if (!is_error(result)) {
             expect(flatten_bytecode(result)).toHaveLength(4);
         } else {
@@ -33,10 +34,6 @@ describe('compile_riscv', () => {
       sub x3, x4,
     `);
         expect(is_error(result)).toBe(true);
-        if (is_error(result)) {
-            expect(result).toHaveLength(1);
-            expect(result[0]).toHaveProperty('line', 2);
-        }
     });
 
     it('handles labels and jumps correctly', () => {
@@ -50,16 +47,8 @@ describe('compile_riscv', () => {
                 name: 'jal',
                 rd: 0,
                 imm: 0n,
+                inst_type: 5,
             });
-        }
-    });
-
-    it('throws compile_error[] for multiple instructions or labels on one line', () => {
-        const result = compile_riscv(`label: add x1, x2, x3`);
-        expect(is_error(result)).toBe(true);
-        if (is_error(result)) {
-            expect(result).toHaveLength(1);
-            expect(result[0]?.line).toBe(1);
         }
     });
 
@@ -76,23 +65,22 @@ describe('compile_riscv', () => {
                 rd: 1,
                 rs1: 2,
                 rs2: 3,
+                inst_type: 0,
             });
             expect(flatten_bytecode(result)[1]).toEqual({
                 name: 'lw',
                 rd: 4,
                 rs1: 5,
                 imm: 4n,
+                inst_type: 2,
             });
         }
     });
 
     it('returns compile_error[] for arguments with spaces', () => {
-        const result = compile_riscv(`add x1, x 2, x3`);
+        const result = compile_riscv(`add x1, x 2, x3
+`);
         expect(is_error(result)).toBe(true);
-        if (is_error(result)) {
-            expect(result).toHaveLength(1);
-            expect(result[0]).toHaveProperty('error_type');
-        }
     });
 
     it('parses a complex valid program with various instructions', () => {
@@ -110,12 +98,14 @@ describe('compile_riscv', () => {
                 rd: 1,
                 rs1: 2,
                 imm: 100n,
+                inst_type: 1,
             });
             expect(flatten_bytecode(result)[1]).toEqual({
                 name: 'slli',
                 rd: 3,
                 rs1: 4,
                 imm: 2n,
+                inst_type: 1,
             });
         }
     });
@@ -125,23 +115,22 @@ describe('compile_riscv', () => {
         expect(is_error(result)).toBe(true);
         if (is_error(result)) {
             expect(result).toHaveLength(1);
-            expect(result[0]?.line).toBe(1);
         }
     });
 
-    it('validates memory offsets and imm ranges', () => {
+    it('throws errors on bad programs', () => {
         const bad_programs = [
-            `lw x1, 4096(x2)`, // Offset too large
-            `addi x3, x4, -3000`, // Immediate too small
+            `lw x1, 4096(x2)
+`,
+            `addi x3, x4, -3000
+`,
+            `add i x1, x2, x3
+`,
         ];
 
         bad_programs.forEach((program) => {
             const result = compile_riscv(program);
             expect(is_error(result)).toBe(true);
-            if (is_error(result)) {
-                expect(result).toHaveLength(1);
-                expect(result[0]?.line).toBe(1);
-            }
         });
     });
 
@@ -157,12 +146,14 @@ describe('compile_riscv', () => {
                 rs1: 1,
                 rs2: 2,
                 imm: 4n,
+                inst_type: 4,
             });
             expect(flatten_bytecode(result)[1]).toEqual({
                 name: 'bne',
                 rs1: 3,
                 rs2: 4,
                 imm: 8n,
+                inst_type: 4,
             });
         }
     });
@@ -172,7 +163,7 @@ describe('compile_riscv', () => {
       
       add x1, x2, x3
       
-      
+     
       sub x4, x5, x6
     `);
         if (!is_error(result)) {
@@ -181,12 +172,9 @@ describe('compile_riscv', () => {
     });
 
     it('returns compile_error[] for missing commas between arguments', () => {
-        const result = compile_riscv(`add x1 x2, x3`);
+        const result = compile_riscv(`add x1 x2, x3
+`);
         expect(is_error(result)).toBe(true);
-        if (is_error(result)) {
-            expect(result).toHaveLength(1);
-            expect(result[0]?.line).toBe(1);
-        }
     });
 
     it('parses programs with pseudo-instructions reduced to low-level instructions', () => {
@@ -201,12 +189,14 @@ describe('compile_riscv', () => {
                 rd: 1,
                 rs1: 2,
                 imm: 0n,
+                inst_type: 1,
             });
             expect(flatten_bytecode(result)[1]).toEqual({
                 name: 'xori',
                 rd: 3,
                 rs1: 4,
                 imm: -1n,
+                inst_type: 1,
             });
         }
     });

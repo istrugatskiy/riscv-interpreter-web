@@ -1,11 +1,5 @@
-import {
-    bytecode_of_string,
-    def_macro,
-    imm_reg_type,
-    imm_type,
-    label_type,
-    reg_type,
-} from './lib_macro';
+import { imm_reg_type, imm_type, label_type, reg_type } from './arguments';
+import { bytecode_of_string, def_macro } from './lib_macro';
 
 export const r_names = [
     'and',
@@ -34,6 +28,7 @@ const r_type = r_names.map((name) =>
                 rd,
                 rs1,
                 rs2,
+                inst_type: 0,
             },
         ]
     )
@@ -59,7 +54,7 @@ const i_type = i_names.map((name) =>
     def_macro(
         name,
         [reg_type, reg_type, imm_type(-2048n, 2047n)] as const,
-        ([rd, rs1, imm]) => [{ name, rd, rs1, imm }]
+        ([rd, rs1, imm]) => [{ name, rd, rs1, imm, inst_type: 1 }]
     )
 );
 
@@ -77,7 +72,7 @@ const mem_type = mem_names.map((name) =>
     def_macro(
         name,
         [reg_type, imm_reg_type(-2048n, 2047n)] as const,
-        ([rd, [imm, rs1]]) => [{ name, rd, rs1, imm }]
+        ([rd, [imm, rs1]]) => [{ name, rd, rs1, imm, inst_type: 2 }]
     )
 );
 
@@ -86,7 +81,7 @@ const u_type = u_names.map((name) =>
     def_macro(
         name,
         [reg_type, imm_type(0n, 0xfffffn)] as const,
-        ([rd, imm]) => [{ name, rd, imm }]
+        ([rd, imm]) => [{ name, rd, imm, inst_type: 3 }]
     )
 );
 
@@ -95,18 +90,18 @@ const b_type = b_names.map((name) =>
     def_macro(
         name,
         [reg_type, reg_type, label_type] as const,
-        ([rs1, rs2, imm]) => [{ name, rs1, rs2, imm }]
+        ([rs1, rs2, imm]) => [{ name, rs1, rs2, imm, inst_type: 4 }]
     )
 );
 
 const j_type = [
     def_macro('jal', [reg_type, label_type] as const, ([rd, imm]) => [
-        { name: 'jal', rd, imm },
+        { name: 'jal', rd, imm, inst_type: 5 },
     ]),
     def_macro(
         'jalr',
         [reg_type, reg_type, imm_type(-2048n, 2047n)] as const,
-        ([rd, rs1, imm]) => [{ name: 'jalr', rd, rs1, imm }]
+        ([rd, rs1, imm]) => [{ name: 'jalr', rd, rs1, imm, inst_type: 5 }]
     ),
 ];
 
@@ -135,6 +130,7 @@ const m_type = m_names.map((name) =>
                 rd,
                 rs1,
                 rs2,
+                inst_type: 6,
             },
         ]
     )
