@@ -3,7 +3,7 @@
  */
 import { SyntaxNode } from '@lezer/common';
 import { abi_map } from './register_abis';
-import { InterpreterError, string_of_def_macro } from './lib_macro';
+import { type InterpreterError, string_of_def_macro } from './lib_macro';
 import { get_node_text } from './ast/ast_utils';
 
 export type ValidArgumentShapes = {

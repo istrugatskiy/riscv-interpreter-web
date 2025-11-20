@@ -13,19 +13,11 @@
  *    should be part of the same sub-array, this is so each step in the interpreter <=> one code line step.
  */
 
-import {
-    b_names,
-    core_macros,
-    i_names,
-    m_names,
-    mem_names,
-    r_names,
-    u_names,
-} from './core_macros';
+import { core_macros } from './core_macros';
 import {
     bytecode_of_string,
-    DefMacroExpr,
-    InterpreterError,
+    type DefMacroExpr,
+    type InterpreterError,
     mk_error_string,
     string_of_def_macro,
 } from './lib_macro';
@@ -37,25 +29,13 @@ export const compile_riscv = bytecode_of_string.bind(undefined, [
     ...pseudo_instructions,
 ]);
 
-const belongs_to_array = <TValue>(
-    value: unknown,
-    allowed: readonly TValue[]
-): value is TValue => (allowed as readonly unknown[]).includes(value);
-
-export const is_r_type = (inst: Instruction): inst is RegisterType =>
-    belongs_to_array(inst.name, r_names);
-export const is_i_type = (inst: Instruction): inst is ImmediateType =>
-    belongs_to_array(inst.name, i_names);
-export const is_mem_type = (inst: Instruction): inst is MemoryType =>
-    belongs_to_array(inst.name, mem_names);
-export const is_u_type = (inst: Instruction): inst is UpperImmediateType =>
-    belongs_to_array(inst.name, u_names);
-export const is_b_type = (inst: Instruction): inst is BranchType =>
-    belongs_to_array(inst.name, b_names);
-export const is_j_type = (inst: Instruction): inst is JumpType =>
-    belongs_to_array(inst.name, ['jal', 'jalr']);
-export const is_m_type = (inst: Instruction): inst is MultiplicationType =>
-    belongs_to_array(inst.name, m_names);
+export const is_r_type = (inst: Instruction) => inst.inst_type == 0;
+export const is_i_type = (inst: Instruction) => inst.inst_type == 1;
+export const is_mem_type = (inst: Instruction) => inst.inst_type == 2;
+export const is_u_type = (inst: Instruction) => inst.inst_type == 3;
+export const is_b_type = (inst: Instruction) => inst.inst_type == 4;
+export const is_j_type = (inst: Instruction) => inst.inst_type == 5;
+export const is_m_type = (inst: Instruction) => inst.inst_type == 6;
 
 export {
     InterpreterError,

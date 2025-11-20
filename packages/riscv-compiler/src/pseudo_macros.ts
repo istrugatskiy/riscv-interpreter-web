@@ -119,6 +119,8 @@ export const pseudo_instructions = [
         'li',
         [reg_type, imm_type(-(2n ** 63n), 2n ** 63n - 1n)] as const,
         // Kinda cheating the system...
-        ([rd, imm]) => [{ name: 'addi', rd, rs1: 0 as Register, imm }]
+        ([rd, imm]) => [
+            { name: 'addi', rd, rs1: 0 as Register, imm, inst_type: 1 },
+        ]
     ),
 ];

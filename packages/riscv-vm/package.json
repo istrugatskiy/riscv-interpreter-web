@@ -12,6 +12,7 @@
         "directory": "packages/riscv-vm"
     },
     "devDependencies": {
+        "tsx": "^4.20.6",
         "vitest": "^3.2.4"
     },
     "scripts": {

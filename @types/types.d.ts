@@ -13,7 +13,7 @@ type TupleOf<T, N extends number, R extends unknown[]> = R['length'] extends N
 
 type Enumerate<
     N extends number,
-    Acc extends number[] = []
+    Acc extends number[] = [],
 > = Acc['length'] extends N
     ? Acc[number]
     : Enumerate<N, [...Acc, Acc['length']]>;
@@ -69,6 +69,7 @@ type RegisterType = {
     rd: Register;
     rs1: Register;
     rs2: Register;
+    inst_type: 0;
 };
 
 type ImmediateName =
@@ -97,6 +98,7 @@ type ImmediateType = {
     rd: Register;
     rs1: Register;
     imm: bigint;
+    inst_type: 1;
 };
 
 type MemoryName = 'lb' | 'lh' | 'lw' | 'ld' | 'sb' | 'sh' | 'sw' | 'sd';
@@ -112,6 +114,7 @@ type MemoryType = {
     rd: Register;
     rs1: Register;
     imm: bigint;
+    inst_type: 2;
 };
 
 /**
@@ -124,6 +127,7 @@ type UpperImmediateType = {
     name: 'lui' | 'auipc';
     rd: Register;
     imm: bigint;
+    inst_type: 3;
 };
 
 type BranchName = 'beq' | 'bne' | 'blt' | 'bltu' | 'bge' | 'bgeu';
@@ -141,6 +145,7 @@ type BranchType = {
     rs1: Register;
     rs2: Register;
     imm: bigint;
+    inst_type: 4;
 };
 
 /**
@@ -151,8 +156,8 @@ type BranchType = {
  *  - jalr x2, x3, label
  */
 type JumpType =
-    | { name: 'jal'; rd: Register; imm: bigint }
-    | { name: 'jalr'; rd: Register; rs1: Register; imm: bigint };
+    | { name: 'jal'; rd: Register; imm: bigint; inst_type: 5 }
+    | { name: 'jalr'; rd: Register; rs1: Register; imm: bigint; inst_type: 5 };
 
 type MultiplicationName =
     | 'mul'
@@ -180,6 +185,7 @@ type MultiplicationType = {
     rd: Register;
     rs1: Register;
     rs2: Register;
+    inst_type: 6;
 };
 
 type Instruction =
