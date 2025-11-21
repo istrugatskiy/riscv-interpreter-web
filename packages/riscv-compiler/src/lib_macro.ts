@@ -59,7 +59,7 @@ export const def_macro = <ArgumentList extends ArgumentType[]>(
                         from:
                             first_arg !== undefined
                                 ? first_arg.from
-                                : macro_expr.to - 1,
+                                : macro_expr.to,
                         to:
                             last_arg !== undefined
                                 ? last_arg.to
