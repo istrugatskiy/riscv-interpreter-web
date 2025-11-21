@@ -1,3 +1,6 @@
+/**
+ * Utilities for working with the RISC-V AST.
+ */
 import { SyntaxNode, Tree } from '@lezer/common';
 import { parser } from './riscv';
 

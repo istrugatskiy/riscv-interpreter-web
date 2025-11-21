@@ -125,6 +125,9 @@ export const register = (
 ): IntRange<0, 32> | undefined =>
     reg === undefined ? undefined : reg_name_to_id.get(reg.toLowerCase());
 
+/**
+ * Parse an argument into the representation used by expanders.
+ */
 export const parse_arg = ({
     type,
     source,
@@ -205,6 +208,9 @@ export const parse_arg = ({
     return argument_val;
 };
 
+/**
+ * Stringify an argument type.
+ */
 export const string_of_argument_type = (argument: ArgumentType) =>
     'min' in argument
         ? `${argument.name}(${argument.min.toString(16)}, ${argument.max.toString(16)})`
