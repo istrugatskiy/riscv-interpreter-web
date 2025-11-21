@@ -22,7 +22,7 @@ jobs:
               run: .yarn/releases/yarn-4.9.2.cjs install
 
             - name: Build with Parcel
-              run: .yarn/releases/yarn-4.9.2.cjs parcel build src/index.html --public-url ./
+              run: .yarn/releases/yarn-4.9.2.cjs parcel build src/index.html --public-url ./ --no-scope-hoist # "temporary fix"
 
             - name: Upload artifact for GitHub Pages
               uses: actions/upload-pages-artifact@v3
