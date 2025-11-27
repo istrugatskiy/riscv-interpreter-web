@@ -9,15 +9,15 @@
         "@istrugatskiy/riscv-compiler": "workspace:^",
         "@istrugatskiy/riscv-vm": "workspace:^",
         "@lezer/highlight": "1.2.1",
-        "@parcel/core": "^2.15.4",
+        "@parcel/core": "^2.16.1",
         "@uiw/codemirror-theme-material": "^4.25.1",
         "codemirror": "^6.0.2",
-        "parcel": "^2.15.4",
+        "parcel": "^2.16.1",
         "typescript": "^5.9.2"
     },
     "devDependencies": {
         "@eslint/js": "^9.33.0",
-        "@parcel/config-default": "^2.15.4",
+        "@parcel/config-default": "^2.16.1",
         "@tailwindcss/postcss": "^4.1.12",
         "@types/emscripten": "^1.40.1",
         "buffer": "^6.0.3",

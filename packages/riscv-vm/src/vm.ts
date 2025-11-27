@@ -259,9 +259,11 @@ See the JS console for more info.`);
                         this.#memory.get(uint64_t(offset + right + imm)) ?? 0n;
                     out += BigInt.asUintN(8, byte_val) << (8n * offset);
                 }
-                this.#registers[rd] = uint64_t(
-                    BigInt.asIntN(8 * Number(end), out)
-                );
+                if (rd !== 0) {
+                    this.#registers[rd] = uint64_t(
+                        BigInt.asIntN(8 * Number(end), out)
+                    );
+                }
             };
             const func = name.at(0) === 's' ? store_range : load_range;
             const size = name.at(1) as 'b' | 'h' | 'w' | 'd';
