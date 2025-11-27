@@ -45,11 +45,10 @@ export const imm_reg_type = (min: bigint, max: bigint) =>
     }) as { name: 'ImmRegister'; min: bigint; max: bigint };
 
 export const immediate = (
-    imm: string | undefined,
+    imm: string,
     min: bigint,
     max: bigint
 ): bigint | undefined => {
-    if (imm === undefined) return undefined;
     // This function is going to be fun to mess up (:
     imm = imm.toLowerCase();
     if (imm === '') return undefined;
@@ -85,7 +84,7 @@ export const immediate = (
 };
 
 export const immediate_or_label = (
-    imm_label: string | undefined,
+    imm_label: string,
     min: bigint,
     max: bigint,
     label_table: Map<string, number>
@@ -95,7 +94,6 @@ export const immediate_or_label = (
     // for example: 10b, 10 instructions back (pc = pc - 10 * 4),
     // 12f, 12 instructions forward (pc = pc + 12 * 4)
     // Also add +, - offsets, so label + 12, or label - 10...
-    if (imm_label === undefined) return undefined;
     imm_label = imm_label.replaceAll(' ', '');
     let added_offset = 0n;
     const [label_str, sign, offset] = imm_label.split(/(\+|-)/);
@@ -120,10 +118,8 @@ export const immediate_or_label = (
     return imm;
 };
 
-export const register = (
-    reg: string | undefined
-): IntRange<0, 32> | undefined =>
-    reg === undefined ? undefined : reg_name_to_id.get(reg.toLowerCase());
+export const register = (reg: string): IntRange<0, 32> | undefined =>
+    reg_name_to_id.get(reg.toLowerCase());
 
 /**
  * Parse an argument into the representation used by expanders.
