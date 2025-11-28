@@ -13,6 +13,7 @@ import {
     ValidArgumentShapes,
 } from './arguments';
 import { type CompilerError } from './compiler_errors';
+import { str_distance } from './string_distance';
 
 type ValidArgumentsOf<Arg extends ArgumentType[]> = {
     [Index in keyof Arg]: ValidArgumentShapes[Arg[Index]['name']];
@@ -38,96 +39,11 @@ export const def_macro = <ArgumentList extends ArgumentType[]>(
     name: string,
     arglist_type: ArgumentList,
     expand: (args: ValidArgumentsOf<ArgumentList>) => Instruction[]
-) => {
-    return {
-        name,
-        arglist_type,
-        try_expand: (
-            macro_expr: SyntaxNode,
-            source: string,
-            argument_list: SyntaxNode[],
-            label_context: Map<string, number>
-        ): Instruction[] | CompilerError[] => {
-            if (argument_list.length !== arglist_type.length) {
-                const first_arg = argument_list.at(0);
-                const last_arg = argument_list.at(-1);
-
-                return [
-                    {
-                        error_type: 'UnexpectedArgumentCount',
-                        detailed_error_msg: `${string_of_def_macro({ name, arglist_type })} expects ${arglist_type.length.toString()} arguments but got ${argument_list.length.toString()}`,
-                        from:
-                            first_arg !== undefined
-                                ? first_arg.from
-                                : macro_expr.to,
-                        to:
-                            last_arg !== undefined
-                                ? last_arg.to
-                                : macro_expr.to,
-                        hint: `Make sure you have ${arglist_type.length.toString()} arguments.`,
-                    },
-                ];
-            }
-            const mapped_args = argument_list.map((argument, arg_type_idx) =>
-                parse_arg({
-                    // clearly non-null value...
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    type: arglist_type[arg_type_idx]!,
-                    source,
-                    argument,
-                    label_context,
-                    macro_expr: { name, arglist_type },
-                })
-            );
-
-            if (
-                mapped_args.every(
-                    (arg) => typeof arg !== 'object' || !('error_type' in arg)
-                )
-            ) {
-                return expand(mapped_args as ValidArgumentsOf<ArgumentList>);
-            }
-
-            return mapped_args.filter(
-                (arg) => typeof arg === 'object' && 'error_type' in arg
-            );
-        },
-    };
-};
-
-// Find similar macros using fuzzy searching:
-// See: https://en.wikipedia.org/wiki/Levenshtein_distance#Iterative_with_two_matrix_rows
-const str_distance = (s: string, t: string) => {
-    const m = s.length,
-        n = t.length;
-    let v0: number[] = [],
-        v1: number[] = [];
-
-    for (let i = 0; i <= n; i++) {
-        v0[i] = i;
-    }
-
-    for (let i = 0; i < m; i++) {
-        v1[0] = i + 1;
-        for (let j = 0; j < n; j++) {
-            const deletion_cost = (v0[j + 1] ?? 0) + 1;
-            const insertion_cost = (v1[j] ?? 0) + 1;
-            const substition_cost =
-                s[i] === t[j] ? (v0[j] ?? 0) : (v0[j] ?? 0) + 1;
-            v1[j + 1] = Math.min(
-                deletion_cost,
-                insertion_cost,
-                substition_cost
-            );
-        }
-
-        const temp_v0 = v0;
-        v0 = v1;
-        v1 = temp_v0;
-    }
-
-    return v0[n] ?? 0;
-};
+) => ({
+    name,
+    arglist_type,
+    expand,
+});
 
 export const expand_ast = (
     tree: Tree,
@@ -167,6 +83,11 @@ export const expand_ast = (
 
     const node_val = get_node_text.bind(undefined, source);
 
+    // Expanding the AST works in stages to allow good error messages:
+    // 1) Find all macros that have the same name (like addi)
+    // 2) Find all macros with the correct number of arguments (like addi/3)
+    // 3) Finally ensure that the arguments match up the right types and expand (like addi/3 [register, register, immediate])
+    // 4) Make sure there is no ambiguity and finally expand the macro.
     const instructions_with_errors = macro_expressions_with_source.map(
         ({ macro_expr, string_rep, line_no }): CompilerError[] | Program[0] => {
             const macro_name_node = macro_expr.getChild('MacroName');
@@ -204,7 +125,7 @@ export const expand_ast = (
                         detailed_error_msg: `No macro named ${macro_name}`,
                         from: macro_name_node.from,
                         to: macro_name_node.to,
-                        hint: `Did you mean one of the following:\n * ${nearest_macros}`,
+                        hint: `Did you mean one of the following?\n * ${nearest_macros}`,
                     },
                 ];
             }
@@ -213,52 +134,106 @@ export const expand_ast = (
                 ({ arglist_type }) => arglist_type.length === macro_args.length
             );
 
-            const expandable_macros = correct_length_macros.filter((macro) =>
-                macro
-                    .try_expand(macro_expr, source, macro_args, labels)
-                    .every(
+            if (correct_length_macros.length === 0) {
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                const expected_macro = correct_name_macros[0]!;
+                const expected_length = expected_macro.arglist_type.length;
+
+                const first_arg = macro_args.at(0);
+                const last_arg = macro_args.at(-1);
+
+                return [
+                    {
+                        error_type: 'UnexpectedArgumentCount',
+                        detailed_error_msg: `${string_of_def_macro(expected_macro)} expects ${expected_length.toString()} arguments but got ${macro_args.length.toString()}`,
+                        from:
+                            first_arg !== undefined
+                                ? first_arg.from
+                                : macro_expr.to,
+                        to:
+                            last_arg !== undefined
+                                ? last_arg.to
+                                : macro_expr.to,
+                        hint: `Make sure you have ${expected_length.toString()} arguments.`,
+                    },
+                ];
+            }
+
+            // Store a list of [def_macro_block, expansion]
+            const macro_expansions = correct_length_macros.map(
+                (
+                    macro_expr
+                ): [DefMacroExpr, Instruction[] | CompilerError[]] => {
+                    const mapped_args = macro_args.map(
+                        (argument, arg_type_idx) =>
+                            parse_arg({
+                                // clearly non-null value...
+                                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                                type: macro_expr.arglist_type[arg_type_idx]!,
+                                source,
+                                argument,
+                                label_context: labels,
+                                macro_expr,
+                            })
+                    );
+
+                    if (
+                        mapped_args.every(
+                            (arg) =>
+                                typeof arg !== 'object' ||
+                                !('error_type' in arg)
+                        )
+                    ) {
+                        return [
+                            macro_expr,
+                            macro_expr.expand(
+                                mapped_args as ValidArgumentsOf<
+                                    typeof macro_expr.arglist_type
+                                >
+                            ),
+                        ] as const;
+                    }
+
+                    return [
+                        macro_expr,
+                        mapped_args.filter(
+                            (arg) =>
+                                typeof arg === 'object' && 'error_type' in arg
+                        ),
+                    ] as const;
+                }
+            );
+
+            const correct_type_macros = macro_expansions.filter(
+                ([, expansion]) =>
+                    expansion.every(
                         (maybe_inst): maybe_inst is Instruction =>
                             !('error_type' in maybe_inst)
                     )
             );
 
-            if (expandable_macros.length > 1) {
+            if (correct_type_macros.length > 1) {
                 return [
                     {
                         error_type: 'AmbiguousMacroExpr',
                         detailed_error_msg: `${node_val(macro_expr)} can be interpreted multiple ways`,
                         from: macro_expr.from,
                         to: macro_expr.to,
-                        hint: `This is likely a bug in the interpreter. The following macro definitions accept your expresion:\n${expandable_macros.map(string_of_def_macro).join('\n * ')}`,
+                        hint: `This is likely a bug in the interpreter. The following macro definitions accept your expresion:\n${correct_type_macros.map(([macro_definition]) => string_of_def_macro(macro_definition)).join('\n * ')}`,
                     },
                 ];
             }
 
-            const macro = expandable_macros[0];
+            const macro = correct_type_macros[0];
             if (macro === undefined) {
-                if (correct_length_macros.length > 0) {
-                    return correct_length_macros[0]?.try_expand(
-                        macro_expr,
-                        source,
-                        macro_args,
-                        labels
-                    ) as CompilerError[];
-                }
-                return correct_name_macros[0]?.try_expand(
-                    macro_expr,
-                    source,
-                    macro_args,
-                    labels
-                ) as CompilerError[];
+                // We know macro_expansions[0] is not undefined since correct_length_macros.length > 0.
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                const [, error_messages] = macro_expansions[0]!;
+                return error_messages as CompilerError[];
             }
 
             return {
-                instructions: macro.try_expand(
-                    macro_expr,
-                    source,
-                    macro_args,
-                    labels
-                ) as Instruction[],
+                instructions: macro[1] as Instruction[],
                 string_rep,
                 line_no,
             };

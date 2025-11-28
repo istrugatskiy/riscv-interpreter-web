@@ -6,6 +6,7 @@ import { reg_name_to_id } from './reg_name_to_id';
 import { string_of_def_macro } from './lib_macro';
 import { get_node_text } from './ast/ast_utils';
 import { CompilerError } from './compiler_errors';
+import { str_distance } from './string_distance';
 
 export type ValidArgumentShapes = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -190,9 +191,17 @@ export const parse_arg = ({
 
     if (argument_val === undefined) {
         if (argument.type.name === 'LabelName') {
+            const nearest_labels = Array.from(label_context.keys())
+                .toSorted(
+                    (label1, label2) =>
+                        str_distance(label1, arg_text) -
+                        str_distance(label2, arg_text)
+                )
+                .slice(0, 3)
+                .join('\n * ');
             return {
                 ...partial_error_msg,
-                hint: `The label "${arg_text}" does not exist.`,
+                hint: `The label "${arg_text}" does not exist. Did you mean one of the following?\n * ${nearest_labels}`,
             };
         }
         return {
