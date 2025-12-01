@@ -39,11 +39,19 @@ export const def_macro = <ArgumentList extends ArgumentType[]>(
     name: string,
     arglist_type: ArgumentList,
     expand: (args: ValidArgumentsOf<ArgumentList>) => Instruction[]
-) => ({
-    name,
-    arglist_type,
-    expand,
-});
+) =>
+    ({
+        name,
+        arglist_type,
+        expand,
+        // One of these casts is a subset of the other, therefore the cast "makes sense" and the types do sufficiently overlap.
+    }) as unknown as {
+        name: string;
+        arglist_type: ArgumentType[];
+        expand: (
+            args: ValidArgumentShapes[keyof ValidArgumentShapes]
+        ) => Instruction[];
+    };
 
 export const expand_ast = (
     tree: Tree,
@@ -187,9 +195,7 @@ export const expand_ast = (
                         return [
                             macro_expr,
                             macro_expr.expand(
-                                mapped_args as ValidArgumentsOf<
-                                    typeof macro_expr.arglist_type
-                                >
+                                mapped_args as ValidArgumentShapes[keyof ValidArgumentShapes]
                             ),
                         ] as const;
                     }
