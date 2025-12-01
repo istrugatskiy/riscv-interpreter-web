@@ -1,6 +1,5 @@
 import {
     core_macros,
-    DefMacroExpr,
     pseudo_macros,
     string_of_def_macro,
     reg_name_to_id,
@@ -30,7 +29,7 @@ export const macro_completions = [...core_macros, ...pseudo_macros].map(
             macro.name + (macro.arglist_type.length === 0 ? '' : ' '),
             {
                 label: macro.name,
-                detail: `: ${string_of_def_macro(macro)} (${(core_macros as DefMacroExpr[]).includes(macro) ? 'Core' : 'Pseudo'})`,
+                detail: `: ${string_of_def_macro(macro)} (${core_macros.includes(macro) ? 'Core' : 'Pseudo'})`,
                 type: 'MacroName',
             }
         )
