@@ -5,22 +5,13 @@ import { materialDark } from '@uiw/codemirror-theme-material';
 import { VirtualMachine } from '@istrugatskiy/riscv-vm';
 import {
     compile_riscv,
-    core_macros,
-    DefMacroExpr,
-    pseudo_macros,
-    string_of_def_macro,
     string_of_compiler_error,
-    reg_name_to_id,
 } from '@istrugatskiy/riscv-compiler';
 import { log_error, log_msg } from './logger';
 import { linter } from '@codemirror/lint';
-import {
-    autocompletion,
-    completeFromList,
-    snippetCompletion,
-} from '@codemirror/autocomplete';
 import { LanguageSupport } from '@codemirror/language';
 import { riscv_language } from './riscv_language';
+import { autocomplete_riscv } from './autocomplete';
 /**
  * Sleeps for a given amount of time the current "thread".
  * @param ms - The amount of time to sleep in milliseconds.
@@ -202,41 +193,13 @@ addi x1, x1, 1363
         return [];
     });
 
-    const reg_completions = Array.from(reg_name_to_id.entries()).map(
-        ([reg_name, reg_num]) => ({
-            label: reg_name,
-            detail: 'Register',
-            type: 'Register',
-            ...(reg_name.startsWith('x')
-                ? {}
-                : { info: `(x${reg_num.toString()})` }),
-        })
-    );
-    const macro_completions = [...core_macros, ...pseudo_macros].map((macro) =>
-        snippetCompletion(
-            `${macro.name} ${macro.arglist_type.map(({ name }, arg_idx) => (name !== 'ImmRegister' ? `#{${name}${arg_idx.toString()}}` : `#{imm${arg_idx.toString()}}(#{reg${arg_idx.toString()}})`)).join(', ')}`.trim(),
-            {
-                label: `${macro.name} ${macro.arglist_type.map(({ name }) => (name !== 'ImmRegister' ? name : 'imm(reg)')).join(', ')}`.trim(),
-                detail: `: ${string_of_def_macro(macro)} (${(core_macros as DefMacroExpr[]).includes(macro) ? 'Core' : 'Pseudo'})`,
-                type: 'MacroName',
-            }
-        )
-    );
-
     const editor = new EditorView({
         doc: saved_code,
         extensions: [
             basicSetup,
             materialDark,
             new LanguageSupport(riscv_language).language,
-            autocompletion({
-                override: [
-                    completeFromList([
-                        ...reg_completions,
-                        ...macro_completions,
-                    ]),
-                ],
-            }),
+            autocomplete_riscv(),
             riscv_linter,
             EditorView.updateListener.of((v) => {
                 localStorage.setItem('code', v.state.doc.toString());
