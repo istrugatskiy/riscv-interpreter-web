@@ -119,8 +119,7 @@ const complete_riscv = (context: CompletionContext) => {
                         : node_before.from,
                 options:
                     total_current_args + 1 ===
-                        potential_macro.arglist_type.length ||
-                    prev_sibling.nextSibling
+                    potential_macro.arglist_type.length
                         ? base_completion
                         : base_completion.map((completion) => ({
                               ...completion,
