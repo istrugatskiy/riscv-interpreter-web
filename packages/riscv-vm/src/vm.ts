@@ -190,6 +190,8 @@ See the JS console for more info.`);
                 const left = this.#registers[rs1],
                     right =
                         'rs2' in inst ? this.#registers[inst.rs2] : inst.imm;
+
+                // Force normalized i type and reg type instructions.
                 name = (is_i_type(inst) ? name.replace('i', '') : name) as
                     | RegisterName
                     | MultiplicationName;
