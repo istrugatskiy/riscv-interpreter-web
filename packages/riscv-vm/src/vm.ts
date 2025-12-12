@@ -7,14 +7,110 @@ const is_j_type = (inst: Instruction) => inst.inst_type == 5;
 const is_m_type = (inst: Instruction) => inst.inst_type == 6;
 
 const uint64_t = BigInt.asUintN.bind(undefined, 64);
+const uint32_t = BigInt.asUintN.bind(undefined, 32);
 const int64_t = BigInt.asIntN.bind(undefined, 64);
 const int32_t = BigInt.asIntN.bind(undefined, 32);
-const uint32_t = BigInt.asUintN.bind(undefined, 32);
+
+/**
+ * A faster byte-addressable RISC-V interpreter memory.
+ * There is no garbage collection, yet...
+ */
+export class InterpreterMemory {
+    readonly #memory = new Map<bigint, BigUint64Array>();
+
+    readonly #page_size: number;
+    readonly #page_offset_width: number;
+    readonly #page_id_mask: bigint;
+
+    #last_used_page: { page_id: bigint; page: BigUint64Array } | undefined;
+
+    constructor(page_size: number) {
+        if (Math.log2(page_size) % 1 !== 0) {
+            throw new Error('Page size must be power of two.');
+        }
+        this.#page_size = page_size;
+        this.#page_offset_width = Math.ceil(Math.log2(this.#page_size));
+        this.#page_id_mask = uint64_t(
+            (2n ** 64n - 1n) << BigInt(this.#page_offset_width)
+        );
+    }
+
+    /**
+     * Set if new_value is not undefined, otherwise equivalent to get.
+     * pg_offset is used to cut down on costs of casting page_offset and computing it.
+     */
+    #get_or_set(
+        byte: bigint,
+        new_value: bigint | undefined,
+        pg_offset: number | undefined
+    ) {
+        const page_id = byte & this.#page_id_mask;
+        const page_offset =
+            pg_offset ?? Number(BigInt.asUintN(this.#page_offset_width, byte));
+
+        if (page_id !== this.#last_used_page?.page_id) {
+            let page = this.#memory.get(page_id);
+            if (page === undefined) {
+                page = new BigUint64Array(this.#page_size);
+                this.#memory.set(page_id, page);
+            }
+
+            this.#last_used_page = { page_id, page };
+        }
+
+        if (new_value !== undefined) {
+            this.#last_used_page.page[page_offset] = new_value;
+        }
+
+        return this.#last_used_page.page[page_offset] ?? 0n;
+    }
+
+    get(byte: bigint) {
+        return this.#get_or_set(byte, undefined, undefined);
+    }
+
+    /**
+     * Set the value of memory[byte] to be value.
+     * We require 0 <= value <= 255
+     */
+    set(byte: bigint, value: bigint) {
+        return this.#get_or_set(byte, value, undefined);
+    }
+
+    store_range(start: bigint, end: bigint, value: bigint) {
+        let page_offset = Number(
+            BigInt.asUintN(this.#page_offset_width, start)
+        );
+        for (let offset = 0n; offset < end; offset++) {
+            const byte = BigInt.asIntN(8, value >> (8n * offset));
+            this.#get_or_set(uint64_t(start + offset), byte, page_offset);
+            page_offset = (page_offset + 1) % this.#page_size;
+        }
+    }
+
+    load_range(start: bigint, end: bigint) {
+        let out = 0n;
+        let page_offset = Number(
+            BigInt.asUintN(this.#page_offset_width, start)
+        );
+        for (let offset = 0n; offset < end; offset++) {
+            const byte_val = this.#get_or_set(
+                uint64_t(start + offset),
+                undefined,
+                page_offset
+            );
+            out += BigInt.asUintN(8, byte_val) << (8n * offset);
+            page_offset = (page_offset + 1) % this.#page_size;
+        }
+
+        return uint64_t(BigInt.asIntN(8 * Number(end), out));
+    }
+}
 
 export class VirtualMachine {
-    #memory = new Map<bigint, bigint>();
+    #memory = new InterpreterMemory(2 ** 12);
     #registers;
-    #pc = 0n;
+    #pc = 0;
     #program: Program;
 
     constructor(program: Program, registers: Tuple<bigint, 32>) {
@@ -30,7 +126,7 @@ export class VirtualMachine {
     step(): [string, number, boolean] {
         try {
             if (
-                this.#pc % 4n != 0n ||
+                this.#pc % 4 != 0 ||
                 this.#pc < 0 ||
                 this.#pc > Number.MAX_SAFE_INTEGER
             ) {
@@ -41,17 +137,17 @@ export class VirtualMachine {
                     `Illegal zero register state: x0 = ${this.#registers[0].toString()}`
                 );
             }
-            const inst = this.#program[Number(this.#pc / 4n)];
+            const inst = this.#program[this.#pc / 4];
 
             if (inst === undefined) {
-                return ['', Number(this.#pc), false];
+                return ['', this.#pc, false];
             }
             const { string_rep, line_no, instructions } = inst;
             this.#pc = instructions.reduce(
                 (_, inst) => this.#eval_inst(inst),
-                -1n
+                -1
             );
-            if (this.#pc % 4n !== 0n) {
+            if (this.#pc % 4 !== 0) {
                 throw new Error(`Instruction addresss misaligned`);
             }
 
@@ -79,13 +175,13 @@ See the JS console for more info.`);
     }
 
     get memory() {
-        return this.#memory as ReadonlyMap<bigint, bigint>;
+        return this.#memory;
     }
 
     /**
      * Evaluate instruction and return new pc.
      */
-    #eval_inst(inst: Instruction): bigint {
+    #eval_inst(inst: Instruction): number {
         if (is_r_type(inst) || is_i_type(inst) || is_m_type(inst)) {
             // Yes, this is technically incorrect, but it makes my life easier...
             let { name } = inst;
@@ -230,43 +326,25 @@ See the JS console for more info.`);
                     );
                 }
             }
-            return this.#pc + 4n;
+            return this.#pc + 4;
         } else if (is_mem_type(inst)) {
             const { name, rd, rs1, imm } = inst;
             const left = this.#registers[rd],
                 right = this.#registers[rs1];
             // If instruction is a store, rs1 = left, rs2 = right.
             const store_range = (end: bigint) => {
-                for (let offset = 0n; offset < end; offset++) {
-                    if (uint64_t(offset + right + imm) > 0x7fffffffffffffffn) {
-                        throw new Error(
-                            'Memory address must be in range [0, 0x7FFFFFFFFFFFFFFF]'
-                        );
-                    }
-                    const byte = BigInt.asIntN(8, left >> (8n * offset));
-                    this.#memory.set(uint64_t(right + imm + offset), byte);
-                }
+                this.#memory.store_range(right + imm, end, left);
             };
             const load_range = (end: bigint) => {
-                let out = 0n;
-                for (let offset = 0n; offset < end; offset++) {
-                    if (uint64_t(offset + right + imm) > 0x7fffffffffffffffn) {
-                        throw new Error(
-                            'Memory address must be in range [0, 0x7FFFFFFFFFFFFFFF]'
-                        );
-                    }
-                    const byte_val =
-                        this.#memory.get(uint64_t(offset + right + imm)) ?? 0n;
-                    out += BigInt.asUintN(8, byte_val) << (8n * offset);
-                }
                 if (rd !== 0) {
-                    this.#registers[rd] = uint64_t(
-                        BigInt.asIntN(8 * Number(end), out)
+                    this.#registers[rd] = this.#memory.load_range(
+                        right + imm,
+                        end
                     );
                 }
             };
-            const func = name.at(0) === 's' ? store_range : load_range;
-            const size = name.at(1) as 'b' | 'h' | 'w' | 'd';
+            const func = name.startsWith('s') ? store_range : load_range;
+            const size = name.charAt(1) as 'b' | 'h' | 'w' | 'd';
             if (size === 'b') {
                 func(1n);
             } else if (size === 'h') {
@@ -276,7 +354,7 @@ See the JS console for more info.`);
             } else {
                 func(8n);
             }
-            return this.#pc + 4n;
+            return this.#pc + 4;
         } else if (is_u_type(inst)) {
             const { name, rd, imm } = inst;
             // We sign extend the 32 bit immediate to a full 64 bits.
@@ -288,10 +366,10 @@ See the JS console for more info.`);
                 if (name === 'lui') {
                     this.#registers[rd] = shifted;
                 } else {
-                    this.#registers[rd] = shifted + this.#pc;
+                    this.#registers[rd] = shifted + BigInt(this.#pc);
                 }
             }
-            return this.#pc + 4n;
+            return this.#pc + 4;
         } else if (is_b_type(inst)) {
             const { name, rs1, rs2, imm } = inst;
             const left = this.#registers[rs1],
@@ -304,23 +382,23 @@ See the JS console for more info.`);
                 (name === 'bge' && int64_t(left) >= int64_t(right)) ||
                 (name === 'bgeu' && left >= right)
             ) {
-                return imm;
+                return Number(imm);
             }
 
-            return this.#pc + 4n;
+            return this.#pc + 4;
         } else if (is_j_type(inst)) {
             const { name, rd, imm } = inst;
             if (rd !== 0) {
-                this.#registers[rd] = int64_t(this.#pc + 4n);
+                this.#registers[rd] = int64_t(BigInt(this.#pc + 4));
             }
             if (name === 'jal') {
                 // Just in case :)
-                return int64_t(imm);
+                return Number(int64_t(imm));
                 // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             } else if (name === 'jalr') {
                 const right = this.#registers[inst.rs1];
                 const result = int64_t((imm + right) & ~1n);
-                return result;
+                return Number(result);
             }
         }
         throw new Error('Illegal Command');

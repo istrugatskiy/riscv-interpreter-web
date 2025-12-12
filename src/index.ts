@@ -2,7 +2,7 @@
 import { basicSetup, EditorView } from 'codemirror';
 import { materialDark } from '@uiw/codemirror-theme-material';
 
-import { VirtualMachine } from '@istrugatskiy/riscv-vm';
+import { InterpreterMemory, VirtualMachine } from '@istrugatskiy/riscv-vm';
 import {
     compile_riscv,
     string_of_compiler_error,
@@ -124,15 +124,12 @@ const append_register_rows = (table_body: HTMLElement | null) => {
     table_body.appendChild(container);
 };
 
-const update_mem_view = (memory: ReadonlyMap<bigint, bigint> | undefined) => {
+const update_mem_view = (memory: InterpreterMemory | undefined) => {
     const offset_el = document.getElementById('offset');
     if (offset_el !== null && offset_el instanceof HTMLInputElement) {
         try {
-            const rounded = clamp(
-                BigInt(offset_el.value),
-                0n,
-                0x7fffffffffffffffn
-            );
+            const rounded = BigInt.asUintN(64, BigInt(offset_el.value));
+
             offset_el.value = rounded.toString(10);
         } catch {
             offset_el.value = '0';
