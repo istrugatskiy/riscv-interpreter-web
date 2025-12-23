@@ -7,6 +7,8 @@ export const compile_riscv = bytecode_of_string.bind(undefined, [
     ...pseudo_macros,
 ]);
 
+console.log(core_macros.toSorted(({ name }, b) => name.localeCompare(b.name)));
+console.log(pseudo_macros);
 export * from './ast/ast_utils';
 export { parser as riscv_parser } from './ast/riscv';
 export * from './arguments';
