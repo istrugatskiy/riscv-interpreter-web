@@ -90,7 +90,7 @@ export const source_map_from_tree = (tree: Tree, source: string) => {
  */
 export const label_table_from_tree = (tree: Tree, source: string) => {
     const statements = tree.topNode.getChildren('Statement');
-
+    const relative_labels = new Map<IntRange<0, 10>, number[]>();
     const labels_with_id = statements
         .map(
             (statement, statement_id) =>
@@ -104,10 +104,19 @@ export const label_table_from_tree = (tree: Tree, source: string) => {
     const label_map = new Map<string, number>();
     let prev_labels = 0;
     for (const [label, label_id] of labels_with_id) {
-        label_map.set(
-            source.substring(label.from, label.to),
-            label_id - prev_labels
-        );
+        const label_name = source.substring(label.from, label.to);
+        if (/^[0-9]$/.test(label_name)) {
+            const label_num = (label_name.charCodeAt(0) -
+                '0'.charCodeAt(0)) as IntRange<0, 10>;
+            if (!relative_labels.has(label_num)) {
+                relative_labels.set(label_num, []);
+            }
+            relative_labels.get(label_num)?.push(label_id - prev_labels);
+        } else {
+            if (!label_map.has(label_name)) {
+                label_map.set(label_name, label_id - prev_labels);
+            }
+        }
 
         // The label might be inline and therefore not affect prev_labels.
         if (!statements.at(label_id)?.getChild('MacroExpr')) {
@@ -115,5 +124,5 @@ export const label_table_from_tree = (tree: Tree, source: string) => {
         }
     }
 
-    return label_map;
+    return [label_map, relative_labels] as const;
 };

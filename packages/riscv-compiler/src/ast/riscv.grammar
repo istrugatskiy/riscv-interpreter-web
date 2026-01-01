@@ -10,7 +10,7 @@ Statement {
 }
 
 LabelDef {
-  name 
+  name | digit
 }
 
 MacroExpr {
@@ -22,7 +22,7 @@ ArgList {
 }
 
 MacroName { name }
-LabelName { name }
+LabelName { name | relative_label_ref }
 ImmRegister {
   Immediate ~ambig space* "(" space* Register space* ")"
 }
@@ -34,12 +34,18 @@ argument {
   | Register
 }
 
+Immediate {
+  binary_immediate | non_binary_immediate 
+}
+
 @tokens {
   space { $[ \t] }
   Comment { "#" ![\n\r]* }
   newline { ("\n" | "\r\n" | "\r") }
 
   name { $[A-Za-z._$] $[A-Za-z0-9._$]* }
+  digit { $[0-9] }
+  relative_label_ref { $[0-9] ( "f" | "b") }
 
   Register {
     "x0"|"x1"|"x2"|"x3"|"x4"|"x5"|"x6"|"x7"|"x8"|"x9"|"x10"|"x11"|"x12"|"x13"|"x14"|"x15"|
@@ -48,12 +54,13 @@ argument {
     "s2"|"s3"|"s4"|"s5"|"s6"|"s7"|"s8"|"s9"|"s10"|"s11"|"t3"|"t4"|"t5"|"t6"|"fp"
   }
 
-  Immediate {
+  non_binary_immediate {
     ("+"|"-")? ( "0x" $[0-9A-Fa-f]+
-         | "0b" $[01]+
          | "0" $[0-7]+
          | $[0-9]+ )
   }
+
+  binary_immediate { "0b" $[01]+ } 
   
-  @precedence { Register, Immediate, name, Comment, newline, space }
+  @precedence { Register, binary_immediate, relative_label_ref, non_binary_immediate, name, Comment, newline, space }
 }

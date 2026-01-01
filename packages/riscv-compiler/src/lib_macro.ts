@@ -170,7 +170,8 @@ export const expand_ast = (
             // Store a list of [def_macro_block, expansion]
             const macro_expansions = correct_length_macros.map(
                 (
-                    macro_expr
+                    macro_expr,
+                    macro_idx
                 ): [DefMacroExpr, Instruction[] | CompilerError[]] => {
                     const mapped_args = macro_args.map(
                         (argument, arg_type_idx) =>
@@ -182,6 +183,7 @@ export const expand_ast = (
                                 argument,
                                 label_context: labels,
                                 macro_expr,
+                                macro_idx,
                             })
                     );
 
@@ -285,4 +287,21 @@ export const bytecode_of_string = (macros: DefMacroExpr[], code: string) => {
     }
 
     return expand_ast(tree, code, macros);
+};
+
+export const collect_warnings = (macros: DefMacroExpr[], code: string) => {
+    if (code.at(-1) !== '\n') {
+        return [
+            {
+                from: code.length,
+                to: code.length,
+                severity: 'warning',
+                message: `** (NoNewlineWarning) **
+File does not end with a newline @ range (${code.length.toString()},${code.length.toString()})!
+Hint: Add a newline at the end of your RISC-V file (the compiler does this automatically)`,
+            },
+        ] as const;
+    }
+
+    return [];
 };

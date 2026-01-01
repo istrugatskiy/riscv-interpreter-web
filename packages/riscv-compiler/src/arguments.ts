@@ -88,30 +88,43 @@ export const immediate_or_label = (
     imm_label: string,
     min: bigint,
     max: bigint,
-    label_table: Map<string, number>
+    label_context: readonly [
+        Map<string, number>,
+        Map<IntRange<0, 10>, number[]>,
+    ],
+    macro_idx: number
 ): bigint | undefined => {
-    // TODO: https://michaeljclark.github.io/asm.html
-    // implement relative addressing, ie [number]b, [number]f,
-    // for example: 10b, 10 instructions back (pc = pc - 10 * 4),
-    // 12f, 12 instructions forward (pc = pc + 12 * 4)
-    // Also add +, - offsets, so label + 12, or label - 10...
+    // TODO: Implement faithful location counter for labels.
+    const [label_table, local_labels] = label_context;
     imm_label = imm_label.replaceAll(' ', '');
-    let added_offset = 0n;
-    const [label_str, sign, offset] = imm_label.split(/(\+|-)/);
-    if (label_str !== undefined && sign !== undefined && offset !== undefined) {
-        added_offset = immediate(offset, 0n, 2n ** 64n - 1n) ?? 0n;
-        if (sign === '-') {
-            added_offset *= -1n;
-        }
-        imm_label = label_str;
-    }
-    if (added_offset % 4n !== 0n) {
-        return undefined;
+    if (/^[0-9](f|b)$/.test(imm_label)) {
+        const label_value = Number(imm_label.charAt(0)) as IntRange<0, 10>;
+        const is_forward = (imm_label.charAt(1) as 'f' | 'b') === 'f';
+
+        const candidate_jumps = local_labels.get(label_value);
+        if (candidate_jumps === undefined) return undefined;
+
+        // Probably could simplify the ternary somehow and make this a find expression but that would require let expressions as opposed to const...
+        const where_to_jump = candidate_jumps.filter((candidate_offset) =>
+            is_forward
+                ? // Filter out all preceeding labels if this is a forward jump.
+                  candidate_offset > macro_idx
+                : candidate_offset <= macro_idx
+        );
+
+        // Since where_to_jump is sorted, we just need to check the first and last element
+        const jump_location = where_to_jump.at(is_forward ? 0 : -1);
+        return jump_location !== undefined
+            ? BigInt(jump_location) * 4n
+            : undefined;
     }
     const label = label_table.get(imm_label);
     if (label !== undefined) {
-        return BigInt(label) * 4n + added_offset;
+        return BigInt(label) * 4n;
     }
+
+    // This is the correct behaviour of jump instructions in RISC-V assembly... I think
+    // They are converted to absolute jumps
     const imm = immediate(imm_label, min, max);
     if ((imm ?? 0n) % 4n !== 0n) {
         return undefined;
@@ -131,15 +144,20 @@ export const parse_arg = ({
     argument,
     label_context,
     macro_expr,
+    macro_idx,
 }: {
     type: ArgumentType;
     source: string;
     argument: SyntaxNode;
-    label_context: Map<string, number>;
+    label_context: readonly [
+        Map<string, number>,
+        Map<IntRange<0, 10>, number[]>,
+    ];
     macro_expr: {
         name: string;
         arglist_type: ArgumentType[];
     };
+    macro_idx: number;
 }): ValidArgumentShapes[keyof ValidArgumentShapes] | CompilerError => {
     const arg_text = get_node_text(source, argument);
 
@@ -181,8 +199,9 @@ export const parse_arg = ({
         argument_val = immediate_or_label(
             arg_text,
             0n,
-            2n ** 63n - 1n,
-            label_context
+            2n ** 12n - 1n,
+            label_context,
+            macro_idx
         );
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     } else if (type.name === 'Register') {
@@ -191,7 +210,7 @@ export const parse_arg = ({
 
     if (argument_val === undefined) {
         if (argument.type.name === 'LabelName') {
-            const nearest_labels = Array.from(label_context.keys())
+            const nearest_labels = Array.from(label_context[0].keys())
                 .toSorted(
                     (label1, label2) =>
                         str_distance(label1, arg_text) -

@@ -105,7 +105,7 @@ const complete_riscv = (context: CompletionContext) => {
                           label_table_from_tree(
                               tree,
                               context.state.doc.toString()
-                          ).keys()
+                          )[0].keys()
                       ).map((label) => ({
                           label,
                           detail: 'Label',

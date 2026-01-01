@@ -4,7 +4,10 @@ import { materialDark } from '@uiw/codemirror-theme-material';
 
 import { InterpreterMemory, VirtualMachine } from '@istrugatskiy/riscv-vm';
 import {
+    collect_warnings,
     compile_riscv,
+    core_macros,
+    pseudo_macros,
     string_of_compiler_error,
 } from '@istrugatskiy/riscv-compiler';
 import { log_error, log_msg } from './logger';
@@ -180,14 +183,24 @@ addi x1, x1, 1363
     const riscv_linter = linter((view) => {
         const code = view.state.doc.toString();
         const compiled_code = compile_riscv(code);
+        const warnings = collect_warnings(
+            [...core_macros, ...pseudo_macros],
+            code
+        );
         if (compiled_code.every((item) => 'error_type' in item)) {
-            return compiled_code.map((error) => ({
-                severity: 'error',
-                ...error,
-                message: string_of_compiler_error(error),
-            }));
+            return [
+                ...compiled_code.map(
+                    (error) =>
+                        ({
+                            severity: 'error',
+                            ...error,
+                            message: string_of_compiler_error(error),
+                        }) as const
+                ),
+                ...warnings,
+            ];
         }
-        return [];
+        return warnings;
     });
 
     const editor = new EditorView({

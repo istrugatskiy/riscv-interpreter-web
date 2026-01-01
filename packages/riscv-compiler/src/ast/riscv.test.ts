@@ -92,5 +92,6 @@ end:
         const inline_label_test = `skibidi: addi x12, x12, 1
 `;
         expect(strict_parser.parse(inline_label_test));
+        console.log(string_of_ast(gcd_prog));
     });
 });
