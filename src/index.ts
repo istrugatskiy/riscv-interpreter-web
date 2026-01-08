@@ -176,7 +176,8 @@ window.addEventListener('load', () => {
         `# Type your code here...
 addi x1, x0, 2047
 addi x1, x1, 1363
-# x1 = 3410 :)`;
+# x1 = 3410 :)
+`;
     update_mem_view(undefined);
     append_register_rows(document.getElementById('registers'));
 
