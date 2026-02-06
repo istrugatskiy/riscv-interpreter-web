@@ -1,12 +1,16 @@
 @precedence { argument @left }
 
 @top
-Program { ((space* newline) | Statement)* }
+Program { Statement* }
 
 @skip { Comment }
 
 Statement {
-  (space* (LabelDef ":" space* | MacroExpr | (LabelDef ":" space* MacroExpr)) newline)
+  space* (inline_statement? newline | inline_statement eof )
+}
+
+inline_statement {
+  LabelDef ":" space* | MacroExpr | (LabelDef ":" space* MacroExpr)
 }
 
 LabelDef {
@@ -42,6 +46,7 @@ Immediate {
   space { $[ \t] }
   Comment { "#" ![\n\r]* }
   newline { ("\n" | "\r\n" | "\r") }
+  eof { @eof }
 
   name { $[A-Za-z._$] $[A-Za-z0-9._$]* }
   digit { $[0-9] }

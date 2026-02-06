@@ -257,7 +257,6 @@ export const expand_ast = (
 };
 
 export const bytecode_of_string = (macros: DefMacroExpr[], code: string) => {
-    code = code.trimEnd() + '\n';
     const tree = parser.parse(code);
     if (tree.length !== code.length) {
         throw new Error('Internal parsing error in Lezer.');
@@ -265,8 +264,11 @@ export const bytecode_of_string = (macros: DefMacroExpr[], code: string) => {
 
     const parsing_errors: { from: number; to: number }[] = [];
     tree.iterate({
-        enter: ({ from, to, type }) => {
+        enter: (node) => {
+            const { from, to, type } = node;
+            console.log(node);
             if (type.isError) {
+                console.log(type);
                 parsing_errors.push({ from, to });
             }
             // If the type is an error,
