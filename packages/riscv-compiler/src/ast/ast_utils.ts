@@ -62,7 +62,8 @@ export const get_node_text = (source: string, node: SyntaxNode | null) => {
  * Creates a source map array mapping instruction_idx => {line string representation, line_no}.
  */
 export const source_map_from_tree = (tree: Tree, source: string) => {
-    source = source.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+    source =
+        source.replaceAll('\r\n', '\n').replaceAll('\r', '\n').trim() + '\n';
     return (
         tree.topNode
             .getChildren('Statement')

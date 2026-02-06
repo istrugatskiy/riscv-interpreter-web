@@ -50,10 +50,30 @@ const i_names = [
     'srai',
     'sraiw',
 ] as const;
+
+// Immediates have limits on how much you can shift them by.
+const shift_type_immediate_ranges = new Map<
+    (typeof i_names)[number],
+    [bigint, bigint]
+>([
+    ['slli', [0n, 63n]],
+    ['slliw', [0n, 31n]],
+    ['srli', [0n, 63n]],
+    ['srliw', [0n, 31n]],
+    ['srai', [0n, 63n]],
+    ['sraiw', [0n, 31n]],
+]);
 export const i_type = i_names.map((name) =>
     def_macro(
         name,
-        [reg_type, reg_type, imm_type(-2048n, 2047n)] as const,
+        [
+            reg_type,
+            reg_type,
+            imm_type.apply(
+                undefined,
+                shift_type_immediate_ranges.get(name) ?? [-2048n, 2047n]
+            ),
+        ] as const,
         ([rd, rs1, imm]) => [{ name, rd, rs1, imm, inst_type: 1 }]
     )
 );
