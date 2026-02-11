@@ -1,15 +1,15 @@
 @precedence { argument @left }
 
 @top
-Program { Statement* }
+Program { full_statement* }
 
 @skip { Comment }
 
-Statement {
-  space* (inline_statement? newline | inline_statement eof )
+full_statement {
+  space* (Statement? newline | Statement eof )
 }
 
-inline_statement {
+Statement {
   LabelDef ":" space* | MacroExpr | (LabelDef ":" space* MacroExpr)
 }
 

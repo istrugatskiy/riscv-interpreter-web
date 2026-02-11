@@ -266,9 +266,7 @@ export const bytecode_of_string = (macros: DefMacroExpr[], code: string) => {
     tree.iterate({
         enter: (node) => {
             const { from, to, type } = node;
-            console.log(node);
             if (type.isError) {
-                console.log(type);
                 parsing_errors.push({ from, to });
             }
             // If the type is an error,
