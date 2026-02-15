@@ -88,7 +88,7 @@ export class InterpreterMemory {
         }
     }
 
-    load_range(start: bigint, end: bigint) {
+    load_range(start: bigint, end: bigint, load_unsigned = false) {
         let out = 0n;
         let page_offset = Number(
             BigInt.asUintN(this.#page_offset_width, start)
@@ -103,7 +103,11 @@ export class InterpreterMemory {
             page_offset = (page_offset + 1) % this.#page_size;
         }
 
-        return uint64_t(BigInt.asIntN(8 * Number(end), out));
+        if (!load_unsigned) {
+            return uint64_t(BigInt.asIntN(8 * Number(end), out));
+        }
+
+        return uint64_t(BigInt.asUintN(8 * Number(end), out));
     }
 }
 
@@ -341,7 +345,8 @@ See the JS console for more info.`);
                 if (rd !== 0) {
                     this.#registers[rd] = this.#memory.load_range(
                         right + imm,
-                        end
+                        end,
+                        name.charAt(2) === 'u'
                     );
                 }
             };

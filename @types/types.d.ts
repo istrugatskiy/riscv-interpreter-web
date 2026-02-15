@@ -101,7 +101,18 @@ type ImmediateType = {
     inst_type: 1;
 };
 
-type MemoryName = 'lb' | 'lh' | 'lw' | 'ld' | 'sb' | 'sh' | 'sw' | 'sd';
+type MemoryName =
+    | 'lb'
+    | 'lh'
+    | 'lw'
+    | 'ld'
+    | 'sb'
+    | 'sh'
+    | 'sw'
+    | 'sd'
+    | 'lbu'
+    | 'lhu'
+    | 'lwu';
 /**
  * Represented as: [name: mem_names] [rd: register], [imm: -2048 <= imm <= 2047]([rs1: register])
  *

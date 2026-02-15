@@ -69,16 +69,27 @@ export const i_type = i_names.map((name) =>
         [
             reg_type,
             reg_type,
-            imm_type.apply(
-                undefined,
-                shift_type_immediate_ranges.get(name) ?? [-2048n, 2047n]
+            imm_type(
+                ...(shift_type_immediate_ranges.get(name) ?? [-2048n, 2047n])
             ),
         ] as const,
         ([rd, rs1, imm]) => [{ name, rd, rs1, imm, inst_type: 1 }]
     )
 );
 
-const mem_names = ['lb', 'lh', 'lw', 'ld', 'sb', 'sh', 'sw', 'sd'] as const;
+const mem_names = [
+    'lb',
+    'lh',
+    'lw',
+    'ld',
+    'sb',
+    'sh',
+    'sw',
+    'sd',
+    'lbu',
+    'lhu',
+    'lwu',
+] as const;
 export const mem_type = mem_names.map((name) =>
     def_macro(
         name,
