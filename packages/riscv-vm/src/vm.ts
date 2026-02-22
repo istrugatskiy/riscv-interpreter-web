@@ -114,7 +114,7 @@ export class InterpreterMemory {
 export class VirtualMachine {
     #memory = new InterpreterMemory(2 ** 12);
     #registers;
-    #pc = 0;
+    pc = 0;
     #program: Program;
 
     constructor(program: Program, registers: Tuple<bigint, 32>) {
@@ -130,9 +130,9 @@ export class VirtualMachine {
     step(): [string, number, boolean] {
         try {
             if (
-                this.#pc % 4 != 0 ||
-                this.#pc < 0 ||
-                this.#pc > Number.MAX_SAFE_INTEGER
+                this.pc % 4 != 0 ||
+                this.pc < 0 ||
+                this.pc > Number.MAX_SAFE_INTEGER
             ) {
                 throw new Error('Illegal pc state');
             }
@@ -141,24 +141,24 @@ export class VirtualMachine {
                     `Illegal zero register state: x0 = ${this.#registers[0].toString()}`
                 );
             }
-            const inst = this.#program[this.#pc / 4];
+            const inst = this.#program[this.pc / 4];
 
             if (inst === undefined) {
-                return ['', this.#pc, false];
+                return ['', this.pc, false];
             }
             const { string_rep, line_no, instructions } = inst;
-            this.#pc = instructions.reduce(
+            this.pc = instructions.reduce(
                 (_, inst) => this.#eval_inst(inst),
                 -1
             );
-            if (this.#pc % 4 !== 0) {
+            if (this.pc % 4 !== 0) {
                 throw new Error(`Instruction addresss misaligned`);
             }
 
             return [
                 string_rep,
                 line_no,
-                this.#pc >= 0 && this.#pc < this.#program.length * 4,
+                this.pc >= 0 && this.pc < this.#program.length * 4,
             ];
         } catch (exc) {
             if (!(exc instanceof Error)) {
@@ -332,7 +332,7 @@ See the JS console for more info.`);
                     );
                 }
             }
-            return this.#pc + 4;
+            return this.pc + 4;
         } else if (is_mem_type(inst)) {
             const { name, rd, rs1, imm } = inst;
             const left = this.#registers[rd],
@@ -361,7 +361,7 @@ See the JS console for more info.`);
             } else {
                 func(8n);
             }
-            return this.#pc + 4;
+            return this.pc + 4;
         } else if (is_u_type(inst)) {
             const { name, rd, imm } = inst;
             // We sign extend the 32 bit immediate to a full 64 bits.
@@ -373,10 +373,10 @@ See the JS console for more info.`);
                 if (name === 'lui') {
                     this.#registers[rd] = shifted;
                 } else {
-                    this.#registers[rd] = shifted + BigInt(this.#pc);
+                    this.#registers[rd] = shifted + BigInt(this.pc);
                 }
             }
-            return this.#pc + 4;
+            return this.pc + 4;
         } else if (is_b_type(inst)) {
             const { name, rs1, rs2, imm } = inst;
             const left = this.#registers[rs1],
@@ -392,11 +392,11 @@ See the JS console for more info.`);
                 return Number(imm);
             }
 
-            return this.#pc + 4;
+            return this.pc + 4;
         } else if (is_j_type(inst)) {
             const { name, rd, imm } = inst;
             if (rd !== 0) {
-                this.#registers[rd] = int64_t(BigInt(this.#pc + 4));
+                this.#registers[rd] = int64_t(BigInt(this.pc + 4));
             }
             if (name === 'jal') {
                 // Just in case :)
