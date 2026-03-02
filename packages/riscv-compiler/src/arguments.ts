@@ -5,7 +5,7 @@ import { SyntaxNode } from '@lezer/common';
 import { reg_name_to_id } from './reg_name_to_id';
 import { string_of_def_macro } from './lib_macro';
 import { get_node_text } from './ast/ast_utils';
-import { CompilerError } from './compiler_errors';
+import { CompilerError, coords_of_index } from './compiler_errors';
 import { str_distance } from './string_distance';
 
 export type ValidArgumentShapes = {
@@ -45,12 +45,7 @@ export const imm_reg_type = (min: bigint, max: bigint) =>
         max,
     }) as { name: 'ImmRegister'; min: bigint; max: bigint };
 
-export const immediate = (
-    imm: string,
-    min: bigint,
-    max: bigint
-): bigint | undefined => {
-    // This function is going to be fun to mess up (:
+const num_of_string = (imm: string) => {
     imm = imm.toLowerCase();
     if (imm === '') return undefined;
     let value: bigint | undefined;
@@ -69,6 +64,16 @@ export const immediate = (
     } catch {
         void 0;
     }
+    return value;
+};
+
+export const immediate = (
+    imm: string,
+    min: bigint,
+    max: bigint
+): bigint | undefined => {
+    let value = num_of_string(imm);
+    // This function is going to be fun to mess up (:
     if (value !== undefined) {
         // Technically not complete... but who cares.
         // We can go as high as an unsigned 64 bit int, or as low as an unsigned one.
@@ -161,11 +166,14 @@ export const parse_arg = ({
 }): ValidArgumentShapes[keyof ValidArgumentShapes] | CompilerError => {
     const arg_text = get_node_text(source, argument);
 
+    const [line, col] = coords_of_index(source, argument.from);
     const partial_error_msg = {
         error_type: 'UnexpectedArgument',
         detailed_error_msg: `${string_of_def_macro(macro_expr)} expects "${arg_text}" to satisfy ${type.name}`,
         from: argument.from,
         to: argument.to,
+        line,
+        col,
     } as const;
 
     if (
@@ -223,9 +231,21 @@ export const parse_arg = ({
                 hint: `The label "${arg_text}" does not exist. Did you mean one of the following?\n * ${nearest_labels}`,
             };
         }
+        const raw_num_value = num_of_string(
+            argument.type.name === 'ImmRegister'
+                ? get_node_text(source, argument.getChild('Immediate'))
+                : arg_text
+        );
+        if (raw_num_value === undefined) {
+            return {
+                ...partial_error_msg,
+                hint: `A syntax error occurred while parsing the immediate.`,
+            };
+        }
+
         return {
             ...partial_error_msg,
-            hint: `The interpreter may refuse to parse ambiguous immediates you may think are in range.`,
+            hint: `The immediate was converted to ${raw_num_value.toString()} which is out of range.`,
         };
     }
 

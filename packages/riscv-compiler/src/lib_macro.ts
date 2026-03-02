@@ -12,7 +12,7 @@ import {
     string_of_argument_type,
     ValidArgumentShapes,
 } from './arguments';
-import { type CompilerError } from './compiler_errors';
+import { coords_of_index, type CompilerError } from './compiler_errors';
 import { str_distance } from './string_distance';
 
 type ValidArgumentsOf<Arg extends ArgumentType[]> = {
@@ -127,12 +127,19 @@ export const expand_ast = (
                     .slice(0, 3)
                     .map(string_of_def_macro)
                     .join('\n * ');
+
+                const [line, col] = coords_of_index(
+                    source,
+                    macro_name_node.from
+                );
                 return [
                     {
                         error_type: 'UnboundMacro',
                         detailed_error_msg: `No macro named ${macro_name}`,
                         from: macro_name_node.from,
                         to: macro_name_node.to,
+                        line,
+                        col,
                         hint: `Did you mean one of the following?\n * ${nearest_macros}`,
                     },
                 ];
@@ -150,19 +157,23 @@ export const expand_ast = (
                 const first_arg = macro_args.at(0);
                 const last_arg = macro_args.at(-1);
 
+                const from_idx =
+                    first_arg !== undefined ? first_arg.from : macro_expr.to;
+
+                const to_idx =
+                    last_arg !== undefined ? last_arg.to : macro_expr.to;
+
+                const [line, col] = coords_of_index(source, from_idx);
+
                 return [
                     {
                         error_type: 'UnexpectedArgumentCount',
                         detailed_error_msg: `${string_of_def_macro(expected_macro)} expects ${expected_length.toString()} arguments but got ${macro_args.length.toString()}`,
-                        from:
-                            first_arg !== undefined
-                                ? first_arg.from
-                                : macro_expr.to,
-                        to:
-                            last_arg !== undefined
-                                ? last_arg.to
-                                : macro_expr.to,
-                        hint: `Make sure you have ${expected_length.toString()} arguments.`,
+                        from: from_idx,
+                        to: to_idx,
+                        line,
+                        col,
+                        hint: undefined,
                     },
                 ];
             }
@@ -221,13 +232,16 @@ export const expand_ast = (
             );
 
             if (correct_type_macros.length > 1) {
+                const [line, col] = coords_of_index(source, macro_expr.from);
                 return [
                     {
                         error_type: 'AmbiguousMacroExpr',
                         detailed_error_msg: `${node_val(macro_expr)} can be interpreted multiple ways`,
                         from: macro_expr.from,
                         to: macro_expr.to,
-                        hint: `This is likely a bug in the interpreter. The following macro definitions accept your expresion:\n${correct_type_macros.map(([macro_definition]) => string_of_def_macro(macro_definition)).join('\n * ')}`,
+                        line,
+                        col,
+                        hint: `This is likely a bug in the interpreter. The following macro definitions accept your expression:\n${correct_type_macros.map(([macro_definition]) => string_of_def_macro(macro_definition)).join('\n * ')}`,
                     },
                 ];
             }
@@ -256,18 +270,25 @@ export const expand_ast = (
     return instructions_with_errors as Program;
 };
 
-export const bytecode_of_string = (macros: DefMacroExpr[], code: string) => {
+export const bytecode_of_string = (
+    macros: DefMacroExpr[],
+    code: string
+): Program | CompilerError[] => {
     const tree = parser.parse(code);
     if (tree.length !== code.length) {
         throw new Error('Internal parsing error in Lezer.');
     }
 
-    const parsing_errors: { from: number; to: number }[] = [];
+    const parsing_errors: { from: number; to: number; bad_node: string }[] = [];
     tree.iterate({
         enter: (node) => {
             const { from, to, type } = node;
             if (type.isError) {
-                parsing_errors.push({ from, to });
+                parsing_errors.push({
+                    from,
+                    to,
+                    bad_node: code.substring(from, to),
+                });
             }
             // If the type is an error,
             // skip all children of the error so as to not duplicate messages.
@@ -276,14 +297,18 @@ export const bytecode_of_string = (macros: DefMacroExpr[], code: string) => {
     });
 
     if (parsing_errors.length) {
-        // TODO: give more specific error ranges
-        return parsing_errors.map(({ from, to }) => ({
-            error_type: 'Parser',
-            detailed_error_msg: 'Syntax Error',
-            from,
-            to,
-            hint: 'Your code should look like the following: LabelDef ":" space* | MacroExpr | (LabelDef ":" space* MacroExpr)',
-        })) as CompilerError[];
+        return parsing_errors.map(({ from, to, bad_node }): CompilerError => {
+            const [line, col] = coords_of_index(code, from);
+            return {
+                error_type: 'Parser',
+                detailed_error_msg: `Unexpected token "${bad_node}"`,
+                from,
+                to,
+                line,
+                col,
+                hint: undefined,
+            };
+        });
     }
 
     return expand_ast(tree, code, macros);

@@ -1,4 +1,4 @@
-const log_line = (msg_type: 'error' | 'warn' | 'log', text: string) => {
+const log_line = (msg_type: 'error' | 'warn' | 'log' | 'hr', text: string) => {
     const log_view = document.getElementById('logs');
     if (!log_view?.parentElement) {
         console.error(text);
@@ -6,10 +6,15 @@ const log_line = (msg_type: 'error' | 'warn' | 'log', text: string) => {
         return;
     }
 
+    if (msg_type === 'hr') {
+        log_view.append(document.createElement('hr'));
+        return;
+    }
+
     const message = document.createElement('p');
     message.textContent = text;
     if (msg_type === 'error') {
-        message.classList.add('text-red-700');
+        message.style.color = 'rgb(255,120, 125)';
     } else if (msg_type === 'warn') {
         message.classList.add('text-yellow-700');
     }
@@ -29,3 +34,4 @@ const log_line = (msg_type: 'error' | 'warn' | 'log', text: string) => {
 export const log_msg = log_line.bind(undefined, 'log');
 export const log_warning = log_line.bind(undefined, 'warn');
 export const log_error = log_line.bind(undefined, 'error');
+export const log_hr = log_line.bind(undefined, 'hr', '');

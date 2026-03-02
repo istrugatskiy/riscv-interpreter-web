@@ -10,7 +10,7 @@ import {
     pseudo_macros,
     string_of_compiler_error,
 } from '@istrugatskiy/riscv-compiler';
-import { log_error, log_msg } from './logger';
+import { log_error, log_hr, log_msg } from './logger';
 import { linter } from '@codemirror/lint';
 import { LanguageSupport } from '@codemirror/language';
 import { riscv_language } from './riscv_language';
@@ -252,6 +252,7 @@ addi x1, x1, 1363
                                 .forEach((line) => {
                                     log_error(line);
                                 });
+                            log_hr();
                         });
                         return false;
                     }
