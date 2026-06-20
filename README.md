@@ -4,6 +4,7 @@ An online 64-bit RISCV interpreter with support for 84 instructions (RV64I + M e
 This interpreter is used by students in Cornell CS 3410 (starting Fall 2024) to test and develop RISCV assembly.
 
 # setup
+Install git-lfs and then run git lfs fetch --all
 
 Setup node.js, corepack, and yarn _berry_ (not yarn classic) (see https://yarnpkg.com/getting-started/install).
 Clone this repo and simply type
