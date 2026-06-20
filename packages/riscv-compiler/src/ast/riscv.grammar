@@ -18,11 +18,11 @@ LabelDef {
 }
 
 MacroExpr {
-  (MacroName space*) | (MacroName space+ ArgList space*)
+  (MacroName space*) | (MacroName space+ ArgList)
 }
 
 ArgList {
-  argument !argument (space* "," space* argument)*
+  argument !argument ("," space* argument)*
 }
 
 MacroName { name }
@@ -32,10 +32,10 @@ ImmRegister {
 }
 
 argument {
-  ImmRegister 
+  (ImmRegister 
   | LabelName
   | Immediate ~ambig
-  | Register
+  | Register) space*
 }
 
 Immediate {

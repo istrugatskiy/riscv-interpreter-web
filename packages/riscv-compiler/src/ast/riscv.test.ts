@@ -11,15 +11,15 @@ describe('RISC-V Parser', () => {
         expect(strict_parser.parse(simple_prog));
 
         const parsed = string_of_ast(`# Type your code here...
-addi x1, x0, 2047
-test:
-addi x1, x1, 1363
-test2:
-# x1 = 3410 :)
-`);
+    addi x1, x0, 2047
+    test:
+    addi x1, x1, 1363
+    test2:
+    # x1 = 3410 :)
+    `);
         expect(parsed);
         const tabbed_program = `addi    x0, x0, x0
-`;
+    `;
         expect(tabbed_program);
     });
 
@@ -93,5 +93,10 @@ end:
 `;
         expect(strict_parser.parse(inline_label_test));
         console.log(string_of_ast(gcd_prog));
+
+        const weird_commas = `addi zero , zero , 67
+`;
+        console.log(string_of_ast(weird_commas));
+        expect(strict_parser.parse(weird_commas));
     });
 });

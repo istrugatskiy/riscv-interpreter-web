@@ -2,9 +2,9 @@
 import {LRParser} from "@lezer/lr"
 export const parser = LRParser.deserialize({
   version: 14,
-  states: "(WQVQPOOOOQO'#Ci'#CiOeQPO'#CmOsQPO'#C`OOQO'#C`'#C`O!RQPO'#CaO!^QPO'#C_OOQO'#C_'#C_OOQO'#Cm'#CmO!cQPO'#CmOOQO'#Ch'#ChQVQPOOOOQO-E6g-E6gOOQO,59X,59XO!kQPO,59XO#XQQO,58{O#cQPO,58yOOQO-E6f-E6fOOQO1G.s1G.sOOQO'#Ce'#CeO#qQPO'#CrOOQO'#Cg'#CgOOQO'#Cr'#CrO$VQPO'#CcO$eQPO1G.gO$pQPO1G.eOOQO'#Cb'#CbOOQO1G.e1G.eO%OQPO,59OO%WQPO,59OP%`QPO'#CiO!sQQO'#CjO%hQPO,58}O%vQPO7+$ROOQO7+$P7+$PO&RQPO1G.jO&RQPO1G.jO&ZQPO1G.jP!sQQO,59UO!sQQO,59UOOQO,59U,59UOOQO-E6h-E6hO&cQPO7+$UO&kQPO7+$UO&kQPO7+$UOOQO7+$U7+$UP!sQQO1G.pOOQO1G.p1G.pO&sQPO<<GpO&sQPO<<GpOOQO<<Gp<<GpPOQO7+$[7+$[O&{QPOAN=[OOQOAN=[AN=[OOQOG22vG22v",
-  stateData: "'_~OPOS~ObPOcROdSOmWO~ObPOcROdSOm]O~ObUXeSXmUXnUX~ObPOmTXnTX~Oe`O~Om]On]O~OmbOnbO~OYfObPOceOgcOhcOkeO~OmTanTa~P!sObPOcjOmRanRa~ObPOimObfXlfXmfXnfX~OloObVXmVXnVX~ObPOmTinTi~ObPOcjOmRinRi~ObPOisO~OYuObPO~ObPOlvO~OloObVamVanVa~ObPOmTqnTq~OY{ObPO~ObPOj}O~OY!QObPO~ObPOj!SO~ObPOj!VO~ObPOj!WO~OYgkhcPmbc~",
-  goto: "$^gPPPhot!P!W!Z!bP!Z!i!o#uPP#{PPPP$PSXOZR^QVUOQZUVOQZQk`RriZTOQZ`iRh_Zf_ovw!OZd_ovw!OQZORaZSQOZj[Q_ilnqtwz|!O!R!UQ_TQi`QldQqhQtmQwoQzsQ|uQ!OvQ!R{R!U!QQpgRypTYOZQg_QxoS!PvwR!T!O",
+  states: "'nQVQPOOOOQO'#Ci'#CiOeQPO'#CmOsQPO'#C`OOQO'#C`'#C`O!RQPO'#CaO!^QPO'#C_OOQO'#C_'#C_OOQO'#Cm'#CmO!cQPO'#CmOOQO'#Ch'#ChQVQPOOOOQO-E6g-E6gOOQO,59X,59XO!kQPO,59XO#XQQO,58{O#cQPO,58yOOQO-E6f-E6fOOQO1G.s1G.sOOQO'#Ce'#CeO#qQPO'#CrOOQO'#Cg'#CgO$SQPO'#CrO$bQPO'#CcOOQO1G.g1G.gO$mQPO1G.eOOQO'#Cb'#CbOOQO1G.e1G.eO${QPO,59^O%^QPO,59OO%fQPO,59^O!sQQO'#CjO%tQPO,58}OOQO7+$P7+$PO&PQPO1G.jO&PQPO1G.jO&XQPO1G.jO!sQQO,59UOOQO,59U,59UOOQO-E6h-E6hO&aQPO7+$UO&iQPO7+$UO&iQPO7+$UOOQO7+$U7+$UOOQO1G.p1G.pO&qQPO<<GpO&qQPO<<GpOOQO<<Gp<<GpO&yQPOAN=[OOQOAN=[AN=[OOQOG22vG22v",
+  stateData: "']~OPOS~ObPOcROdSOmWO~ObPOcROdSOm]O~ObUXeSXmUXnUX~ObPOmTXnTX~Oe`O~Om]On]O~OmbOnbO~OYfObPOceOgcOhcOkeO~OmTanTa~P!sObPOcjOmRanRa~ObPOimOlfXmfXnfX~ObPOlfXmfXnfX~OloOmVXnVX~ObPOcjOmRinRi~ObPOirOlfamfanfa~OYtObPO~ObPOlfamfanfa~OloOmVanVa~OYyObPO~ObPOj{O~OY}ObPO~ObPOj!PO~ObPOj!RO~ObPOj!SO~OYgkhcPmbc~",
+  goto: "$PgPPPhot!P!W!Z!`P!Z!e!k#lPP#rPPPP#vSXOZR^QVUOQZUVOQZQk`RqiZTOQZ`iRh_Vf_ouVd_ouQZORaZSQOZf[Q_ilnsuxz!O!QQ_TQi`QldQnfQsmQuoQxrQztQ!OyR!Q}QpgRwpTYOZQg_QvoR|u",
   nodeNames: "⚠ Comment Program Statement LabelDef MacroExpr MacroName ArgList ImmRegister Immediate Register LabelName",
   maxTerm: 30,
   skippedNodes: [0,1],
@@ -12,5 +12,5 @@ export const parser = LRParser.deserialize({
   tokenData: "1s~RnXY#PYZ#U]^#Zpq#Pst#ctu#}xy$fyz$k{|$p|}&W}!O$p!O!P#}!Q!R&]!R!['`![!]'p!c!}#}#R#S#}#T#U'u#U#Y#}#Y#Z)a#Z#[)a#[#f#}#f#g*O#g#h*j#h#i,e#i#l#}#l#m-i#m#n#}#n#o/s~~1n~#UOb~~#ZOm~~#`Pm~YZ#U~#hTP~OY#cZ]#c^;'S#c;'S;=`#w<%lO#c~#zP;=`<%l#c~$SUc~tu#}!O!P#}!Q![#}!c!}#}#R#S#}#T#o#}~$kOi~~$pOj~Q$sQ!Q!R$y!R![%dQ%ORhQ!Q!Y%X!Y![%d#l#m%lQ%^QhQ!Q!Y%X!Y![%dQ%iPhQ!Q![%dQ%oR!Q![%x!c!i%x#T#Z%xQ%}RhQ!Q![%x!c!i%x#T#Z%x~&]Ol~R&dTdPhQ!Q!Y%X!Y![%d#U#V&s#Y#Z'Z#l#m%lQ&xQkQ!Q!R'O!R!S'OQ'TQgQ!Q!R'O!R!S'OQ'`OkQR'gRdPhQ!Q![%d#U#V'Z#Y#Z'Z~'uOe~~'z^c~tu#}!O!P#}!Q!R(v!R!S(v!S!T(v!T!U(v!U!V(v!V!W(v!W!X(v!X!Y(v!Y![#}!c!}#}#R#S#}#T#o#}~(}UY~c~tu#}!O!P#}!Q![#}!c!}#}#R#S#}#T#o#}~)fWc~tu#}!O!P#}!Q![#}!c!}#}#R#S#}#T#d#}#d#e(v#e#o#}~*TVc~tu#}!O!P#}!Q![#}!c!}#}#R#S#}#T#U(v#U#o#}~*oac~tu#}!O!P#}!Q!R(v!R!S+t!S!T(v!T!U(v!U!V(v!V!W(v!W!X(v!X!Y(v!Y!Z(v!Z![(v!c!}#}#R#S#}#T#d#}#d#e(v#e#o#}~+{WY~c~tu#}!O!P#}!Q!R(v!R!S(v!S![#}!c!}#}#R#S#}#T#o#}~,j_c~tu#}!O!P#}!Q!R(v!R!S(v!S!T(v!T!U(v!U!V(v!V!W(v!W!X(v!X![#}!c!}#}#R#S#}#T#d#}#d#e(v#e#o#}~-n_c~tu#}!O!P#}!Q!R(v!R!S.m!S!T.m!T!U+t!U!V(v!V!W(v!W!X(v!X!Y(v!Y!Z(v!Z![(v!c!}#}#R#S#}#T#o#}~.t_Y~c~tu#}!O!P#}!Q!R(v!R!S(v!S!T(v!T!U(v!U!V(v!V!W(v!W!X(v!X!Y(v!Y!Z(v!Z![(v!c!}#}#R#S#}#T#o#}~/xWc~tu#}!O!P#}!Q![#}!c!}#}#R#S#}#T#X#}#X#Y0b#Y#o#}~0gWc~tu#}!O!P#}!Q![#}!c!}#}#R#S#}#T#f#}#f#g1P#g#o#}~1UWc~tu#}!O!P#}!Q![#}!c!}#}#R#S#}#T#c#}#c#d(v#d#o#}~1sOn~",
   tokenizers: [0, 1],
   topRules: {"Program":[0,2]},
-  tokenPrec: 281
+  tokenPrec: 279
 })
