@@ -11,7 +11,8 @@
         <link rel="stylesheet" type="text/css" href="index.css" />
         <script type="module" src="./index.ts"></script>
     </head>
-    <body class="text-gray-300 h-screen flex flex-col font-sans">
+
+    <body class="bg-[rgb(25,27,29)] min-w-[800px] min-h-[800px] overflow-auto text-gray-300 h-screen flex flex-col font-sans">
         <!-- Header -->
         <header class="bg-material p-4 sticky top-0 z-1">
             <div class="flex justify-center space-x-4">
@@ -48,12 +49,17 @@
         <!-- Main Content -->
         <main class="flex-1 grid grid-cols-2 gap-4 p-4">
             <div class="grid grid-rows-3 gap-4">
-                <div id="editor"></div>
+                <div 
+                    class="row-span-2 h-fit rounded-lg bg-[rgb(46,50,53)]"
+                    id="editor"
+                ></div>
                 <div
                     class="row-span-1 bg-material p-6 rounded-lg overflow-auto"
                 >
                     <h1 class="text-xl">Log Output</h1>
-                    <div id="logs" class="max-h-full font-mono"></div>
+
+
+                    <div id="logs" class="max-h-[max(20vh,125px)] font-mono"></div>
                 </div>
             </div>
             <div class="grid grid-rows-3 gap-4">
@@ -72,7 +78,10 @@
                             <option value="decimal">decimal</option>
                         </select>
                     </div>
-                    <div id="registers"></div>
+                    <div
+                        class="w-full" 
+                        id="registers"
+                    ></div>
                 </div>
                 <div
                     class="row-span-1 bg-material p-6 rounded-lg flex flex-col items-center font-mono"
