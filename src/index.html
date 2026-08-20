@@ -11,9 +11,10 @@
         <link rel="stylesheet" type="text/css" href="index.css" />
         <script type="module" src="./index.ts"></script>
     </head>
-    <body class="text-gray-300 h-screen flex flex-col font-sans">
+
+    <body class="bg-dark-material overflow-auto text-gray-300 h-screen flex flex-col font-sans">
         <!-- Header -->
-        <header class="bg-material p-4 sticky top-0 z-1">
+        <header class="bg-material w-full p-4 sticky top-0 z-1">
             <div class="flex justify-center space-x-4">
                 <button
                     class="bg-gray-600 hover:bg-gray-500 text-white py-2 px-4 rounded"
@@ -46,19 +47,22 @@
         </header>
 
         <!-- Main Content -->
-        <main class="flex-1 grid grid-cols-2 gap-4 p-4">
-            <div class="grid grid-rows-3 gap-4">
-                <div id="editor"></div>
-                <div
-                    class="row-span-1 bg-material p-6 rounded-lg overflow-auto"
+        <main class="flex flex-1 flex-col md:flex-row space-x-0 md:space-x-4 space-y-4 md:space-y-0 p-4">
+            <section class="flex flex-col w-full h-full md:w-1/2 gap-4">
+                <subsection 
+                    class="w-full h-2/3 p-6 rounded-lg bg-material"
+                    id="editor"
+                ></subsection>
+                <subsection
+                    class="w-full h-full md:h-1/3 bg-material p-6 rounded-lg overflow-auto"
                 >
                     <h1 class="text-xl">Log Output</h1>
-                    <div id="logs" class="max-h-full font-mono"></div>
-                </div>
-            </div>
-            <div class="grid grid-rows-3 gap-4">
-                <div
-                    class="row-span-2 bg-material p-6 rounded-lg overflow-auto flex flex-col items-center font-mono"
+                    <div id="logs" class="max-h-[max(20vh,125px)] font-mono"></div>
+                </subsection>
+            </section>
+            <section class="flex flex-col w-full h-full md:w-1/2 gap-4">
+                <subsection
+                    class="h-2/3 w-full bg-material p-6 rounded-lg overflow-auto flex flex-col items-center font-mono"
                     id="register-tab"
                 >
                     <div>
@@ -72,10 +76,13 @@
                             <option value="decimal">decimal</option>
                         </select>
                     </div>
-                    <div id="registers"></div>
-                </div>
-                <div
-                    class="row-span-1 bg-material p-6 rounded-lg flex flex-col items-center font-mono"
+                    <div
+                        class="w-full" 
+                        id="registers"
+                    ></div>
+                </subsection>
+                <subsection
+                    class="h-1/3 bg-material p-6 rounded-lg flex flex-col items-center font-mono"
                 >
                     <h1 class="text-xl text-left w-full">Memory View</h1>
                     <div>
@@ -88,8 +95,8 @@
                         />
                     </div>
                     <div id="mem-values"></div>
-                </div>
-            </div>
+                </subsection>
+            </section>
         </main>
     </body>
 </html>
