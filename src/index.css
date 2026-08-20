@@ -23,3 +23,6 @@ button:hover:disabled {
 #editor .cm-editor {
     height: 100%;
 }
+.cm-editor.cm-focused {
+  @apply outline-0
+}
