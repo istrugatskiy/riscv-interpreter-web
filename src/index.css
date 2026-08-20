@@ -3,10 +3,10 @@
 .bg-material {
     @apply bg-[rgb(46,50,53)]
 }
-.cm-editor,
-#register-tab {
-    @apply p-6 rounded-lg w-[max(calc(50vw-1.5rem),376px)] h-[max(calc(66vh-70px),600px)]
+.bg-dark-material{
+    @apply bg-[rgb(25,27,29)]
 }
+
 .cm-scroll {
     @apply overflow-auto
 }
@@ -18,4 +18,8 @@ button:disabled {
 }
 button:hover:disabled {
     @apply shadow-none bg-[rgb(46,50,53)]
+}
+/* guarantees the cm-editor is shorter than its parent */
+#editor .cm-editor {
+    height: 100%;
 }
