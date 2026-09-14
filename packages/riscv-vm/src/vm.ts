@@ -378,6 +378,9 @@ See the JS console for more info.`);
             }
             return this.pc + 4;
         } else if (is_b_type(inst)) {
+            // The way GNU treats "j 4" \neq how RISC-V would encode "j 4".
+            // Hence, why this behavior looks spec-non-conforming but is actually
+            // quasi-correct.
             const { name, rs1, rs2, imm } = inst;
             const left = this.#registers[rs1],
                 right = this.#registers[rs2];
