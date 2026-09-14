@@ -237,7 +237,7 @@ See the JS console for more info.`);
                 } else if (name === 'sllw') {
                     this.#registers[rd] = uint64_t(
                         int64_t(
-                            uint32_t(
+                            int32_t(
                                 uint32_t(left & 0xffffffffn) <<
                                     uint32_t(right & 0x1fn)
                             )
@@ -246,7 +246,7 @@ See the JS console for more info.`);
                 } else if (name === 'srlw') {
                     this.#registers[rd] = uint64_t(
                         int64_t(
-                            uint32_t(
+                            int32_t(
                                 uint32_t(left & 0xffffffffn) >>
                                     uint32_t(right & 0x1fn)
                             )
