@@ -371,9 +371,9 @@ See the JS console for more info.`);
             const shifted = uint64_t(int32_t(imm << 12n));
             if (rd !== 0) {
                 if (name === 'lui') {
-                    this.#registers[rd] = shifted;
+                    this.#registers[rd] = uint64_t(shifted);
                 } else {
-                    this.#registers[rd] = shifted + BigInt(this.pc);
+                    this.#registers[rd] = uint64_t(shifted + BigInt(this.pc));
                 }
             }
             return this.pc + 4;
