@@ -304,20 +304,20 @@ See the JS console for more info.`);
                     );
                 } else if (name === 'divw') {
                     this.#registers[rd] = uint64_t(
-                        right === 0n
+                        int32_t(right) === 0n
                             ? -1n
                             : int32_t(int32_t(left) / int32_t(right))
                     );
                 } else if (name === 'divuw') {
                     this.#registers[rd] = uint64_t(
-                        right === 0n
+                        uint32_t(right) === 0n
                             ? -1n
                             : int32_t(uint32_t(left) / uint32_t(right))
                     );
                 } else if (name === 'remw') {
                     this.#registers[rd] = uint64_t(
                         int32_t(
-                            right === 0n ? left : int32_t(left) % int32_t(right)
+                            int32_t(right) === 0n ? left : int32_t(left) % int32_t(right)
                         )
                     );
                     // Disable this check because we want to make clear the instruction we are operating on.
@@ -325,7 +325,7 @@ See the JS console for more info.`);
                 } else if (name === 'remuw') {
                     this.#registers[rd] = uint64_t(
                         int32_t(
-                            right === 0n
+                            uint32_t(right) === 0n
                                 ? uint32_t(left)
                                 : uint32_t(left) % uint32_t(right)
                         )
